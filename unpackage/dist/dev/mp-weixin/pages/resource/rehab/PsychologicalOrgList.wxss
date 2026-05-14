@@ -1,0 +1,106 @@
+/* 容器布局：Flex 列，占满全屏 */
+.list-container.data-v-3d9377bf {
+  height: 100vh;
+  /* 或者 100% 如果父容器有高度 */
+  display: flex;
+  flex-direction: column;
+  background-color: #f9fafb;
+}
+
+/* 顶部固定区域 */
+.filter-area.data-v-3d9377bf {
+  flex-shrink: 0;
+  background: #fff;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  z-index: 10;
+}
+
+/* 滚动内容区域 */
+.scroll-content.data-v-3d9377bf {
+  flex: 1;
+  height: 0;
+  /* 关键：配合 flex:1 实现内部滚动 */
+}
+.org-list.data-v-3d9377bf {
+  padding: 16px;
+}
+
+/* 卡片样式 */
+.org-card.data-v-3d9377bf {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+.org-card.data-v-3d9377bf:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+.card-header.data-v-3d9377bf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.org-name.data-v-3d9377bf {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1f2937;
+  flex: 1;
+  margin-right: 8px;
+}
+.card-info.data-v-3d9377bf {
+  margin-bottom: 12px;
+}
+.info-row.data-v-3d9377bf {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.info-text.data-v-3d9377bf {
+  font-size: 13px;
+  color: #6b7280;
+  flex: 1;
+}
+.line-clamp-1.data-v-3d9377bf {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.line-clamp-2.data-v-3d9377bf {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-desc.data-v-3d9377bf {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+.card-footer.data-v-3d9377bf {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 12px;
+}
+.loading-state.data-v-3d9377bf {
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.loading-text.data-v-3d9377bf {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #9ca3af;
+}
+.bottom-spacer.data-v-3d9377bf {
+  height: 20px;
+}

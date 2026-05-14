@@ -1,0 +1,1 @@
+{"version":3,"file":"HospitalList.js","sources":["pages/resource/medical/HospitalList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/medical/HospitalList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,aAAe,eAAA;"}

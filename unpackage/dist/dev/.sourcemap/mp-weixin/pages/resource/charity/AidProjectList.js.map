@@ -1,0 +1,1 @@
+{"version":3,"file":"AidProjectList.js","sources":["pages/resource/charity/AidProjectList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/charity/AidProjectList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,eAAe,eAAA;"}

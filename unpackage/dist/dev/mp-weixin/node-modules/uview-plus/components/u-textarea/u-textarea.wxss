@@ -1,0 +1,33 @@
+.u-textarea.data-v-31706dd7 {
+  border-radius: 4px;
+  background-color: #fff;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  padding: 9px;
+}
+.u-textarea--radius.data-v-31706dd7 {
+  border-radius: 4px;
+}
+.u-textarea--no-radius.data-v-31706dd7 {
+  border-radius: 0;
+}
+.u-textarea--disabled.data-v-31706dd7 {
+  background-color: #f5f7fa;
+}
+.u-textarea__field.data-v-31706dd7 {
+  flex: 1;
+  font-size: 15px;
+  color: #606266;
+  width: 100%;
+}
+.u-textarea__count.data-v-31706dd7 {
+  position: absolute;
+  right: 5px;
+  bottom: 2px;
+  font-size: 12px;
+  color: #909193;
+  background-color: #ffffff;
+  padding: 1px 4px;
+}

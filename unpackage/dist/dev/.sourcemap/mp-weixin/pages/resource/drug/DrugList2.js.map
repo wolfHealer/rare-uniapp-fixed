@@ -1,0 +1,1 @@
+{"version":3,"file":"DrugList2.js","sources":["/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/drug/DrugList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/drug/DrugList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,SAAe,eAAA;"}

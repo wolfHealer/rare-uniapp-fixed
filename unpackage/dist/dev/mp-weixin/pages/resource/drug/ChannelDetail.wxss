@@ -1,0 +1,161 @@
+
+.page-container.data-v-de57bc56 {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f9fafb;
+}
+.nav-bar.data-v-de57bc56 {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #ffffff;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.nav-title.data-v-de57bc56 {
+  font-size: 18px;
+  font-weight: bold;
+}
+.nav-placeholder.data-v-de57bc56 {
+  width: 24px;
+}
+.loading-state.data-v-de57bc56 {
+  margin-top: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loading-text.data-v-de57bc56 {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #6b7280;
+}
+.content-scroll.data-v-de57bc56 {
+  flex: 1;
+  overflow-y: auto;
+}
+.card.data-v-de57bc56 {
+  background-color: #ffffff;
+  padding: 16px;
+  margin-top: 12px;
+}
+.channel-name.data-v-de57bc56 {
+  font-size: 20px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 8px;
+}
+.tags-row.data-v-de57bc56 {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.info-list.data-v-de57bc56 {
+  margin-top: 12px;
+  font-size: 14px;
+}
+.info-item.data-v-de57bc56 {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+.info-item.no-border.data-v-de57bc56 {
+  border-bottom: none;
+}
+.info-label.data-v-de57bc56 {
+  color: #6b7280;
+}
+.info-value.data-v-de57bc56 {
+  color: #374151;
+}
+.section-header.data-v-de57bc56 {
+  font-weight: 600;
+  font-size: 16px;
+  display: block;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+.section-content.data-v-de57bc56 {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  display: block;
+}
+
+/* 新增: 药品列表样式 */
+.drug-list.data-v-de57bc56 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.drug-item.data-v-de57bc56 {
+  background-color: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.drug-brand.data-v-de57bc56 {
+  font-weight: 500;
+  color: #1f2937;
+}
+.drug-generic.data-v-de57bc56 {
+  color: #6b7280;
+}
+.contact-list.data-v-de57bc56 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.contact-item.data-v-de57bc56 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+.contact-left.data-v-de57bc56 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.contact-type.data-v-de57bc56 {
+  font-size: 14px;
+  color: #4b5563;
+}
+.contact-value.data-v-de57bc56 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+}
+.link-text.data-v-de57bc56 {
+  color: #2563eb;
+  word-break: break-all;
+}
+.text-gray-400.data-v-de57bc56 {
+  color: #9ca3af;
+}
+.text-sm.data-v-de57bc56 {
+  font-size: 12px;
+}
+.p-2.data-v-de57bc56 {
+  padding: 8px;
+}
+.action-card.data-v-de57bc56 {
+  margin-bottom: 0;
+}
+.bottom-safe-area.data-v-de57bc56 {
+  height: 20px;
+}
+.empty-state.data-v-de57bc56 {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

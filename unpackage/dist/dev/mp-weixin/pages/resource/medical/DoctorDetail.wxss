@@ -1,0 +1,130 @@
+
+.page-container.data-v-ab740b2f {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 16px;
+}
+.loading-state.data-v-ab740b2f {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 0;
+}
+.loading-text.data-v-ab740b2f {
+  margin-left: 8px;
+  color: #6b7280;
+}
+.content-box.data-v-ab740b2f {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.card.data-v-ab740b2f {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.mt-3.data-v-ab740b2f {
+  margin-top: 12px;
+}
+.mt-2.data-v-ab740b2f {
+  margin-top: 8px;
+}
+.doctor-name.data-v-ab740b2f {
+  font-size: 18px;
+  font-weight: bold;
+  display: block;
+}
+.doctor-info.data-v-ab740b2f {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 4px;
+  display: block;
+}
+.doctor-specialty.data-v-ab740b2f {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+}
+.doctor-specialty .label.data-v-ab740b2f {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* 【新增】疾病标签样式 */
+.disease-tags.data-v-ab740b2f {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.disease-tags .label.data-v-ab740b2f {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-right: 8px;
+  margin-top: 4px; /* 对齐标签高度 */
+}
+.tags-wrapper.data-v-ab740b2f {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+.mr-2.data-v-ab740b2f {
+  margin-right: 8px;
+}
+.mb-2.data-v-ab740b2f {
+  margin-bottom: 8px;
+}
+.doctor-address.data-v-ab740b2f {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #999;
+  margin-top: 8px;
+}
+.address-text.data-v-ab740b2f {
+  margin-left: 4px;
+}
+.card-title.data-v-ab740b2f {
+  font-size: 16px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+.card-content.data-v-ab740b2f {
+  font-size: 14px;
+  color: #374151;
+}
+.phone-row.data-v-ab740b2f {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.phone-text.data-v-ab740b2f {
+  font-size: 14px;
+  color: #374151;
+}
+.rating-summary.data-v-ab740b2f {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.rating-score.data-v-ab740b2f {
+  font-size: 18px;
+  font-weight: bold;
+}
+.rating-unit.data-v-ab740b2f {
+  font-size: 14px;
+  color: #6b7280;
+}
+.no-reviews-tip.data-v-ab740b2f {
+  font-size: 12px;
+  color: #9ca3af;
+}
+.action-buttons.data-v-ab740b2f {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}

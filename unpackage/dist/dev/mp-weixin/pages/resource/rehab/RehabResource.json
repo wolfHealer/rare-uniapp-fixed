@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "康复支持",
+  "usingComponents": {
+    "u-icon": "../../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-tabs": "../../../node-modules/uview-plus/components/u-tabs/u-tabs",
+    "rehab-guide": "./RehabGuideList",
+    "psychological-org-list": "./PsychologicalOrgList",
+    "rehab-institution-list": "./RehabInstitutionList",
+    "bottom-nav": "../../../components/BottomNav"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "医保政策解读",
+  "usingComponents": {
+    "u-icon": "../../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-tabs": "../../../node-modules/uview-plus/components/u-tabs/u-tabs",
+    "policy-list": "./PolicyList",
+    "bottom-nav": "../../../components/BottomNav"
+  }
+}

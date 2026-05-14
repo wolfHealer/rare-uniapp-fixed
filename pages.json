@@ -1,0 +1,244 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^u-(.*)": "uview-plus/components/u-$1/u-$1.vue"
+    }
+  },
+  "pages": [
+    {
+      "path": "pages/main/Home",
+      "style": { "navigationBarTitleText": "首页" }
+    },
+    {
+      "path": "pages/resource/Resources",
+      "style": { "navigationBarTitleText": "医疗" }
+    },
+    {
+      "path": "pages/community/Community",
+      "style": { "navigationBarTitleText": "社区", "navigationStyle": "default" }
+    },
+    {
+      "path": "pages/user/profile/Profile",
+      "style": { "navigationBarTitleText": "我的" }
+    },
+    
+    {
+      "path": "pages/resource/knowledge/KnowledgeResource",
+      "style": { "navigationBarTitleText": "疾病科普" }
+    },
+    {
+      "path": "pages/resource/knowledge/DiseaseDetail",
+      "style": { "navigationBarTitleText": "病种详情" }
+    },
+    {
+      "path": "pages/resource/knowledge/ArticleDetail",
+      "style": { "navigationBarTitleText": "文章详情" }
+    },  
+    {
+      "path": "pages/resource/knowledge/CategoryDetail",
+      "style": { "navigationBarTitleText": "分类详情" }
+    },
+
+    {
+      "path": "pages/resource/medical/MedicalResource",
+      "style": { "navigationBarTitleText": "医院&医生" }
+    },
+    {
+      "path": "pages/resource/medical/DoctorList",
+      "style": { "navigationBarTitleText": "医生列表" }
+    },
+    {
+      "path": "pages/resource/medical/HospitalList",
+      "style": { "navigationBarTitleText": "医院列表" }
+    },
+    {
+      "path": "pages/resource/medical/DoctorDetail",
+      "style": { "navigationBarTitleText": "医生详情" }
+    },
+    {
+      "path": "pages/resource/medical/HospitalDetail",
+      "style": { "navigationBarTitleText": "医院详情" }
+    },
+    {
+      "path": "pages/resource/medical/ExaminationsList",
+      "style": { "navigationBarTitleText": "检查项目列表" }
+    },
+    {
+      "path": "pages/resource/medical/ExaminationDetail",
+      "style": { "navigationBarTitleText": "检查项目详情" }
+    },
+
+    {
+      "path": "pages/resource/charity/CharityResource",
+      "style": { "navigationBarTitleText": "公益救助" }
+    },
+    {
+      "path": "pages/resource/charity/AidProjectList",
+      "style": { "navigationBarTitleText": "救助项目列表" }
+    },
+    {
+      "path": "pages/resource/charity/AidProjectDetail",
+      "style": { "navigationBarTitleText": "救助项目详情" }
+    },
+    {
+      "path": "pages/resource/charity/CaseShareList",
+      "style": { "navigationBarTitleText": "案例分享列表" }
+    },
+    {
+      "path": "pages/resource/charity/CaseShareDetail",
+      "style": { "navigationBarTitleText": "案例详情" }
+    },
+    {
+      "path": "pages/resource/charity/HelpChannelList",
+      "style": { "navigationBarTitleText": "求助渠道列表" }
+    },
+    {
+      "path": "pages/resource/charity/HelpChannelDetail",
+      "style": { "navigationBarTitleText": "求助渠道详情" }
+    },
+
+    {
+      "path": "pages/resource/medicare/MedicareResource",
+      "style": { "navigationBarTitleText": "医保政策解读" }
+    },
+    {
+      "path": "pages/resource/medicare/PolicyList",
+      "style": { "navigationBarTitleText": "政策列表" }
+    },
+    {
+      "path": "pages/resource/medicare/PolicyDetail",
+      "style": { "navigationBarTitleText": "政策详情" }
+    },
+
+    {
+      "path": "pages/resource/drug/DrugResource",
+      "style": { "navigationBarTitleText": "用药信息" }
+    },
+    {
+      "path": "pages/resource/drug/DrugList",
+      "style": { "navigationBarTitleText": "药品列表" }
+    },
+    {
+      "path": "pages/resource/drug/DrugDetail",
+      "style": { "navigationBarTitleText": "药品详情" }
+    },
+    {
+      "path": "pages/resource/drug/ChannelList",
+      "style": { "navigationBarTitleText": "购药渠道列表" }
+    },
+    {
+      "path": "pages/resource/drug/ChannelDetail",
+      "style": { "navigationBarTitleText": "购药渠道详情" }
+    },
+     {
+      "path": "pages/resource/drug/DonationProjectList",
+      "style": {
+        "navigationBarTitleText": "赠药项目列表"
+      }
+    },
+     {
+      "path": "pages/resource/drug/DonationProjectDetail",
+      "style": {
+        "navigationBarTitleText": "项目详情"
+      }
+    },
+    {
+      "path": "pages/resource/drug/DonationApply",
+      "style": { "navigationBarTitleText": "赠药申请" }
+    },
+
+    {
+      "path": "pages/resource/rehab/RehabResource",
+      "style": { "navigationBarTitleText": "康复支持" }
+    },
+    {
+      "path": "pages/resource/rehab/RehabInstitutionList",
+      "style": { "navigationBarTitleText": "康复机构列表" }
+    },
+    {
+      "path": "pages/resource/rehab/RehabInstitutionDetail",
+      "style": { "navigationBarTitleText": "康复机构详情" }
+    },
+    {
+      "path": "pages/resource/rehab/PsychologicalOrgList",
+      "style": { "navigationBarTitleText": "心理机构列表" }
+    },
+    {
+      "path": "pages/resource/rehab/PsychologicalOrgDetail",
+      "style": { "navigationBarTitleText": "心理机构详情" }
+    },
+    {
+      "path": "pages/resource/rehab/RehabGuideList",
+      "style": { "navigationBarTitleText": "康复指南列表" }
+    },
+    {
+      "path": "pages/resource/rehab/RehabGuideDetail",
+      "style": { "navigationBarTitleText": "康复指南详情" }
+    },
+    
+
+    {
+      "path": "pages/user/login/Login",
+      "style": { "navigationBarTitleText": "登录" }
+    },
+    {
+      "path": "pages/user/register/Register",
+      "style": { "navigationBarTitleText": "注册" }
+    },
+    {
+      "path": "pages/user/profile/Favorites",
+      "style": { "navigationBarTitleText": "我的收藏" }
+    },
+    {
+      "path": "pages/user/profile/MyPosts",
+      "style": { "navigationBarTitleText": "我的发布" }
+    },
+    {
+      "path": "pages/user/profile/ProfileEdit",
+      "style": { "navigationBarTitleText": "编辑资料" }
+    },
+    {
+      "path": "pages/community/PostDetail",
+      "style": { "navigationBarTitleText": "帖子详情", "navigationStyle": "custom" }
+    }
+  ],
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#2A7BFF",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/main/Home",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/resource/Resources",
+        "text": "医疗",
+        "iconPath": "static/tabbar/medical.png",
+        "selectedIconPath": "static/tabbar/medical-active.png"
+      },
+      {
+        "pagePath": "pages/community/Community",
+        "text": "社区",
+        "iconPath": "static/tabbar/community.png",
+        "selectedIconPath": "static/tabbar/community-active.png"
+      },
+      {
+        "pagePath": "pages/user/profile/Profile",
+        "text": "我的",
+        "iconPath": "static/tabbar/profile.png",
+        "selectedIconPath": "static/tabbar/profile-active.png"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "罕见病平台",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f8f8f8"
+  }
+}

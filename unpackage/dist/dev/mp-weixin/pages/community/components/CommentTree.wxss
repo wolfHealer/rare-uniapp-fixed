@@ -1,0 +1,82 @@
+
+.comment-tree.data-v-562bce3a {
+  width: 100%;
+}
+.comment-item.data-v-562bce3a {
+  margin-bottom: 12px;
+}
+.flex-row.data-v-562bce3a {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+.avatar-placeholder.data-v-562bce3a {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+.comment-content.data-v-562bce3a {
+  flex: 1;
+}
+.user-info-row.data-v-562bce3a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.username.data-v-562bce3a {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+.time.data-v-562bce3a {
+  font-size: 12px;
+  color: #9ca3af;
+}
+.content-text.data-v-562bce3a {
+  font-size: 14px;
+  color: #374151;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.action-row.data-v-562bce3a {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+.reply-btn.data-v-562bce3a {
+  font-size: 12px;
+  color: #3b82f6;
+  cursor: pointer;
+  margin-right: 16px;
+}
+
+/* 子评论容器 */
+.replies-container.data-v-562bce3a {
+  margin-left: 40px;
+  margin-top: 8px;
+  background-color: #f9fafb;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+/* 查看更多回复按钮样式 */
+.load-more-replies-btn.data-v-562bce3a {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  margin-top: 8px;
+  padding: 4px 0;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* 模拟 hover 效果在小程序中较难完美实现，通常使用 active 或点击态 */
+.load-more-replies-btn.data-v-562bce3a:active {
+  background-color: #f3f4f6;
+}

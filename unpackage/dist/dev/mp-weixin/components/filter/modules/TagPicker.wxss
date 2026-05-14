@@ -1,0 +1,16 @@
+.tag-list.data-v-ff63b423 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.tag-item.data-v-ff63b423 {
+  padding: 14rpx 24rpx;
+  background: #f5f7fa;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  color: #606266;
+}
+.tag-item.active.data-v-ff63b423 {
+  background: #e8f3ff;
+  color: #2979ff;
+}

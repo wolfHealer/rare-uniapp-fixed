@@ -1,0 +1,13 @@
+{
+  "navigationBarTitleText": "求助渠道列表",
+  "usingComponents": {
+    "u-search": "../../../node-modules/uview-plus/components/u-search/u-search",
+    "u-loading-icon": "../../../node-modules/uview-plus/components/u-loading-icon/u-loading-icon",
+    "u-tag": "../../../node-modules/uview-plus/components/u-tag/u-tag",
+    "u-cell": "../../../node-modules/uview-plus/components/u-cell/u-cell",
+    "u-cell-group": "../../../node-modules/uview-plus/components/u-cell-group/u-cell-group",
+    "u-empty": "../../../node-modules/uview-plus/components/u-empty/u-empty",
+    "u-button": "../../../node-modules/uview-plus/components/u-button/u-button",
+    "smart-filter-bar": "../../../components/filter/SmartFilterBar"
+  }
+}

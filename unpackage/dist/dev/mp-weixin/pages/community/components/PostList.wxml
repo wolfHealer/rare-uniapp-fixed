@@ -1,0 +1,1 @@
+<view class="post-list-container data-v-cf0b3624"><post-card wx:for="{{a}}" wx:for-item="item" wx:key="a" class="data-v-cf0b3624" bindcomment="{{item.b}}" bindpreviewImage="{{item.c}}" u-i="{{item.d}}" bind:__l="__l" u-p="{{item.e}}"/><u-loadmore wx:if="{{c}}" class="data-v-cf0b3624" bindloadmore="{{b}}" u-i="cf0b3624-1" bind:__l="__l" u-p="{{c}}"/></view>

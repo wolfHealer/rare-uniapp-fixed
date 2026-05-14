@@ -1,0 +1,42 @@
+/* 样式保持不变 */
+.page-container.data-v-843668f8 {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f9fafb;
+}
+.filter-area.data-v-843668f8 {
+  flex-shrink: 0;
+  background: #fff;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  z-index: 10;
+}
+.content-scroll.data-v-843668f8 {
+  flex: 1;
+  overflow-y: auto;
+}
+.p-4.data-v-843668f8 {
+  padding: 16px;
+}
+.mt-4.data-v-843668f8 {
+  margin-top: 16px;
+}
+.flex.data-v-843668f8 {
+  display: flex;
+}
+.justify-center.data-v-843668f8 {
+  justify-content: center;
+}
+.items-center.data-v-843668f8 {
+  align-items: center;
+}
+.ml-2.data-v-843668f8 {
+  margin-left: 8px;
+}
+.text-gray-500.data-v-843668f8 {
+  color: #6b7280;
+}
+.text-center.data-v-843668f8 {
+  text-align: center;
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"PolicyList.js","sources":["pages/resource/medicare/PolicyList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/medicare/PolicyList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,WAAe,eAAA;"}

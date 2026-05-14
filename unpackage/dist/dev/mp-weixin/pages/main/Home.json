@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "首页",
+  "usingComponents": {
+    "u-icon": "../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-badge": "../../node-modules/uview-plus/components/u-badge/u-badge",
+    "u-swiper": "../../node-modules/uview-plus/components/u-swiper/u-swiper",
+    "u-tag": "../../node-modules/uview-plus/components/u-tag/u-tag",
+    "u-image": "../../node-modules/uview-plus/components/u-image/u-image"
+  }
+}

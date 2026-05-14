@@ -1,0 +1,1 @@
+{"version":3,"file":"CaseShareList.js","sources":["pages/resource/charity/CaseShareList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/charity/CaseShareList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,cAAe,eAAA;"}

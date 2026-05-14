@@ -1,0 +1,108 @@
+
+.page-container.data-v-0c921b7e {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+}
+.header.data-v-0c921b7e {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.title.data-v-0c921b7e {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1f2937;
+}
+.placeholder.data-v-0c921b7e {
+  width: 24px;
+}
+.loading-state.data-v-0c921b7e {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 32px;
+}
+.loading-text.data-v-0c921b7e {
+  margin-top: 8px;
+  color: #6b7280;
+}
+.content-scroll.data-v-0c921b7e {
+  flex: 1;
+  height: 0; /* 关键：配合 flex:1 实现内部滚动 */
+}
+.card.data-v-0c921b7e {
+  background-color: #ffffff;
+  padding: 16px;
+  margin-top: 12px;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.mt-3.data-v-0c921b7e {
+  margin-top: 12px;
+}
+.mb-2.data-v-0c921b7e {
+  margin-bottom: 8px;
+}
+.guide-title.data-v-0c921b7e {
+  font-size: 20px;
+  font-weight: bold;
+  display: block;
+  color: #1f2937;
+  line-height: 1.4;
+}
+.tags-box.data-v-0c921b7e {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 12px;
+  gap: 6px;
+}
+.section-title.data-v-0c921b7e {
+  font-size: 16px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 12px;
+  color: #1f2937;
+  border-left: 4px solid #3b82f6;
+  padding-left: 8px;
+}
+.forbidden-title.data-v-0c921b7e {
+  border-left-color: #ef4444;
+  color: #dc2626;
+}
+.content-text.data-v-0c921b7e {
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-line; /* 保留换行符 */
+  display: block;
+}
+.forbidden-text.data-v-0c921b7e {
+  color: #b91c1c; 
+  background-color: #fef2f2;
+  padding: 8px;
+  border-radius: 4px;
+}
+.images-list.data-v-0c921b7e {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rounded-lg.data-v-0c921b7e {
+  border-radius: 8px;
+  overflow: hidden;
+}
+.bottom-spacer.data-v-0c921b7e {
+  height: 20px;
+}

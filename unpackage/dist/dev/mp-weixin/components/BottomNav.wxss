@@ -1,0 +1,28 @@
+
+.bottom-nav.data-v-53d1cde7 {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 100rpx;
+  background: #ffffff;
+  border-top: 1rpx solid #e5e5e5;
+}
+.nav-item.data-v-53d1cde7 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+.nav-icon.data-v-53d1cde7 {
+  width: 44rpx;
+  height: 44rpx;
+}
+.nav-text.data-v-53d1cde7 {
+  margin-top: 6rpx;
+  font-size: 24rpx;
+  color: #7a7e83;
+}
+.nav-text.active.data-v-53d1cde7 {
+  color: #3cc51f;
+}

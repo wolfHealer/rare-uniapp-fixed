@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "公益救助",
+  "usingComponents": {
+    "u-icon": "../../../node-modules/uview-plus/components/u-icon/u-icon",
+    "u-tabs": "../../../node-modules/uview-plus/components/u-tabs/u-tabs",
+    "aid-project-list": "./AidProjectList",
+    "case-share": "./CaseShareList",
+    "help-channel": "./HelpChannelList",
+    "bottom-nav": "../../../components/BottomNav"
+  }
+}

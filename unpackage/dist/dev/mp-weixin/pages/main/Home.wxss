@@ -1,0 +1,204 @@
+.page-container.data-v-6a312ec2 {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部搜索 */
+.search-header.data-v-6a312ec2 {
+  background-color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.search-box.data-v-6a312ec2 {
+  flex: 1;
+  background-color: #f3f4f6;
+  height: 36px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  margin-right: 12px;
+}
+.search-placeholder.data-v-6a312ec2 {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-left: 8px;
+}
+.msg-icon.data-v-6a312ec2 {
+  position: relative;
+  padding: 4px;
+}
+
+/* 滚动内容 */
+.content-scroll.data-v-6a312ec2 {
+  flex: 1;
+  height: 0;
+}
+
+/* 金刚区 */
+.nav-grid.data-v-6a312ec2 {
+  display: flex;
+  flex-wrap: wrap;
+  background-color: #fff;
+  padding: 16px 0;
+  margin-bottom: 12px;
+}
+.nav-item.data-v-6a312ec2 {
+  width: 20%;
+  /* 一行5个 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.icon-box.data-v-6a312ec2 {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.nav-text.data-v-6a312ec2 {
+  font-size: 12px;
+  color: #374151;
+}
+
+/* 通用 Section */
+.section.data-v-6a312ec2 {
+  background-color: #fff;
+  margin-bottom: 12px;
+  padding: 16px;
+}
+.section-header.data-v-6a312ec2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.title.data-v-6a312ec2 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1f2937;
+}
+.more.data-v-6a312ec2 {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* 横向滚动 */
+.horizontal-scroll.data-v-6a312ec2 {
+  white-space: nowrap;
+}
+.doctor-card.data-v-6a312ec2 {
+  display: inline-block;
+  width: 140px;
+  margin-right: 12px;
+  vertical-align: top;
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 8px;
+}
+.avatar.data-v-6a312ec2 {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-bottom: 8px;
+}
+.doc-info.data-v-6a312ec2 {
+  display: flex;
+  flex-direction: column;
+}
+.doc-name.data-v-6a312ec2 {
+  font-size: 14px;
+  font-weight: bold;
+  color: #1f2937;
+}
+.doc-title.data-v-6a312ec2 {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+.doc-hospital.data-v-6a312ec2 {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-tags.data-v-6a312ec2 {
+  margin-top: 6px;
+}
+
+/* 救助列表 */
+.charity-card.data-v-6a312ec2 {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.charity-card.data-v-6a312ec2:last-child {
+  border-bottom: none;
+}
+.charity-content.data-v-6a312ec2 {
+  flex: 1;
+  margin-right: 12px;
+}
+.charity-title.data-v-6a312ec2 {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 4px;
+}
+.charity-desc.data-v-6a312ec2 {
+  font-size: 13px;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.charity-footer.data-v-6a312ec2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.amount.data-v-6a312ec2 {
+  font-size: 14px;
+  color: #ef4444;
+  font-weight: bold;
+}
+
+/* 帖子列表 */
+.post-card.data-v-6a312ec2 {
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.post-card.data-v-6a312ec2:last-child {
+  border-bottom: none;
+}
+.post-title.data-v-6a312ec2 {
+  font-size: 15px;
+  color: #374151;
+  display: block;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.post-meta.data-v-6a312ec2 {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9ca3af;
+}

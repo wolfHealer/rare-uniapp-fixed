@@ -1,0 +1,1 @@
+{"version":3,"file":"DonationProjectList.js","sources":["pages/resource/drug/DonationProjectList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/drug/DonationProjectList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,oBAAe,eAAA;"}

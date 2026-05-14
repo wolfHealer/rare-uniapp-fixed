@@ -1,0 +1,38 @@
+.region-picker.data-v-d8a0cb3f {
+  width: 100%;
+}
+.region-trigger.data-v-d8a0cb3f {
+  width: 100%;
+  /* 确保触发器容器本身不透明 */
+  background-color: #ffffff !important;
+}
+
+/* 使用 :deep() 穿透到插槽内容或内部元素 */
+.region-trigger-inner.data-v-d8a0cb3f {
+  min-height: 72rpx;
+  padding: 16rpx 20rpx;
+  box-sizing: border-box;
+  /* 强制白色背景 */
+  background-color: #ffffff !important;
+  /* 强制完全不透明 */
+  opacity: 1 !important;
+  /* 清晰的边框 */
+  border: 1px solid #dcdfe6 !important;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.region-text.data-v-d8a0cb3f {
+  flex: 1;
+  font-size: 28rpx;
+  /* 强制黑色文字 */
+  color: #303133 !important;
+  line-height: 40rpx;
+  padding-right: 12rpx;
+  opacity: 1 !important;
+}
+.region-placeholder.data-v-d8a0cb3f {
+  /* 占位符颜色稍浅，但也要可见 */
+  color: #909399 !important;
+}
