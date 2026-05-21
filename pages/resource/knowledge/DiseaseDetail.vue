@@ -138,48 +138,10 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { knowledgeApi } from '@/api/knowledge'
+import type { DiseaseDetailData } from '@/types/knowledge'
 
-// 定义接口数据结构
-interface Category {
-  id: number
-  name: string
-}
-
-interface Tag {
-  id: number
-  name: string
-}
-
-interface Article {
-  id: number
-  title: string
-  summary: string
-  coverImage?: string
-  sourceName: string
-  publishTime: string
-  viewCount: number
-}
-
-interface Disease {
-  id: number
-  name: string
-  alias?: string
-  introduction?: string
-  symptoms?: string
-  images?: string[]
-  primaryCategoryId?: number
-  primaryCategoryName?: string
-  categoryIds?: number[]
-  categories?: Category[]
-  tagIds?: number[]
-  tags?: Tag[]
-  articles?: Article[]
-  status?: number
-  content?: string
-}
-
-const disease = ref<Disease | null>(null)
+const disease = ref<DiseaseDetailData | null>(null)
 const loading = ref(false)
 const diseaseId = ref<number | null>(null)
 
@@ -219,7 +181,7 @@ const fetchDiseaseDetail = async (id: number) => {
   loading.value = true
   try {
     // 调用接口
-    const res = await request.get(`/api/knowledge/disease/${id}`)
+    const res = await knowledgeApi.getDisease(id)
     
     console.log('病种详情原始数据:', res.data) 
 

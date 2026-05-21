@@ -1,11 +1,11 @@
 // types/filter.ts
+import type { DiseaseFilterValue, RegionSelection } from './common'
 
 export interface FilterOption {
   label: string
-  value: any
+  value: string | number | boolean | null
 }
 
-// 添加 'provinceCity'
 export type FilterType = 'region' | 'hospital' | 'tags' | 'disease' | 'provinceCity'
 
 export interface FilterConfigItem {
@@ -15,3 +15,16 @@ export interface FilterConfigItem {
   options?: FilterOption[]
   placeholder?: string
 }
+
+/** SmartFilterBar v-model 单字段值 */
+export type FilterFieldValue =
+  | string
+  | number
+  | boolean
+  | null
+  | DiseaseFilterValue
+  | RegionSelection
+  | Record<string, unknown>
+
+/** SmartFilterBar v-model */
+export type FilterParamsMap = Record<string, FilterFieldValue>

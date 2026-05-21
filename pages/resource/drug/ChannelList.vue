@@ -65,19 +65,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { drugApi } from '@/api/drug'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type { ChannelListItem, ChannelFilterParams } from '@/types/drug'
+import type { DrugListQuery } from '@/types/drug'
 
-// --- 1. 状态管理 ---
 const keyword = ref('')
-const channels = ref<any[]>([])
-const loading = ref(false)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-const page = ref(1)
-
-// 筛选参数状态
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<ChannelFilterParams>({
   region: {},    
   delivery: '',
   channel_type: '' // 确保这里有初始值
@@ -126,93 +122,49 @@ const getChannelTypeText = (type: string) => {
   return map[type] || '其他渠道'
 }
 
-const getFullAddress = (item: any) => {
+const getFullAddress = (item: ChannelListItem) => {
   const parts = [item.provinceName, item.cityName, item.districtName, item.address].filter(Boolean)
   return parts.join('') || '地址不详'
 }
 
-// --- 3. 数据加载逻辑 ---
-const fetchChannels = async (isRefresh = false) => {
-  if (isRefresh) {
-    page.value = 1
-    channels.value = []
-    loadStatus.value = 'loading'
-  }
-  if (loadStatus.value === 'nomore' && !isRefresh) return
-
-  loading.value = true
-  try {
-    const params: any = { 
-      page: page.value, 
-      pageSize: 10 
-    }
-
-    if (keyword.value) {
-      params.keyword = keyword.value
-    }
-
-    // 处理地区筛选
-    const regionData = filterParams.value.region || {}
-    if (regionData.provinceCode) params.provinceCode = regionData.provinceCode
-    if (regionData.cityCode) params.cityCode = regionData.cityCode
-    if (regionData.districtCode) params.districtCode = regionData.districtCode
-
-    // 处理配送方式筛选
-    if (filterParams.value.delivery) {
-      params.deliveryScope = filterParams.value.delivery
-    }
-
-    // 处理渠道类型筛选
-    if (filterParams.value.channel_type) {
-      params.channelType = filterParams.value.channel_type
-    }
-
-    const res = await request.get('/api/resource/drug/channels', params)
-    const list = res.data?.list || []
-    channels.value.push(...list)
-    
-    if (list.length < 10) {
-      loadStatus.value = 'nomore'
-    } else {
-      loadStatus.value = 'loadmore'
-      page.value++
-    }
-  } catch (e) {
-    loadStatus.value = 'loadmore'
-    uni.showToast({ title: '加载失败', icon: 'none' })
-  } finally {
-    loading.value = false
-  }
+const buildQueryParams = (page: number, pageSize: number): DrugListQuery => {
+  const params: DrugListQuery = { page, pageSize }
+  if (keyword.value) params.keyword = keyword.value
+  const regionData = filterParams.value.region || {}
+  if (regionData.provinceCode) params.provinceCode = regionData.provinceCode
+  if (regionData.cityCode) params.cityCode = regionData.cityCode
+  if (regionData.districtCode) params.districtCode = regionData.districtCode
+  if (filterParams.value.delivery) params.deliveryScope = filterParams.value.delivery
+  if (filterParams.value.channel_type) params.channelType = filterParams.value.channel_type
+  return params
 }
 
-// --- 4. 事件处理 ---
-const loadMore = () => fetchChannels()
+const { list: channels, loading, loadStatus, refresh, onLoadMore } = usePagedList<ChannelListItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await drugApi.listChannels(buildQueryParams(page, pageSize))
+    const records = res.data?.list || []
+    return { list: records, hasMore: records.length >= pageSize }
+  }
+})
 
-const handleSearch = () => fetchChannels(true)
-
+const loadMore = () => onLoadMore()
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  fetchChannels(true)
+  refresh()
 }
-
-const handleFilterChange = () => {
-  fetchChannels(true)
-}
-
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    region: {},
-    delivery: '',
-    channel_type: ''
-  }
-  fetchChannels(true)
+  filterParams.value = { region: {}, delivery: '', channel_type: '' }
+  refresh()
 }
 
-const contact = (item: any) => {
+const contact = (item: ChannelListItem) => {
   uni.navigateTo({ url: `/pages/resource/drug/ChannelDetail?id=${item.id}` })
 }
 
-const copyInfo = (item: any) => {
+const copyInfo = (item: ChannelListItem) => {
   const text = `${item.name}\n${getFullAddress(item)}\n电话: ${item.contactPhone || '暂无'}`
   uni.setClipboardData({ 
     data: text, 
@@ -220,7 +172,7 @@ const copyInfo = (item: any) => {
   })
 }
 
-const openUrl = (item: any) => {
+const openUrl = (item: ChannelListItem) => {
   if (!item.contactUrl) return
   // #ifdef H5
   window.open(item.contactUrl, '_blank')
@@ -233,7 +185,7 @@ const openUrl = (item: any) => {
   // #endif
 }
 
-onMounted(() => fetchChannels())
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

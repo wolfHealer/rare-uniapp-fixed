@@ -174,38 +174,25 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { drugApi } from '@/api/drug'
+import type {
+  UviewFormRef,
+  FormRuleCallback,
+  UploadFileItem,
+  UploadAfterReadEvent,
+  PickerConfirmEvent
+} from '@/types/ui'
+import type { DonationApplyFormState, DonationProjectBrief } from '@/types/drug'
 
-// 类型定义
-interface ProjectInfo {
-  id: number
-  name: string
-  condition: string
-  period: string
-  organizer: string
-  auditStatus: number
-}
-
-interface FormState {
-  patientName: string
-  patientIdCard: string
-  contactPhone: string
-  diagnosisHospital: string
-  diagnosisTime: string
-  incomeProof: string
-  remark: string
-}
-
-// 响应式数据
-const projectInfo = ref<ProjectInfo | null>(null)
+const projectInfo = ref<DonationProjectBrief | null>(null)
 const submitting = ref(false)
 const projectId = ref<number | null>(null)
 const showDatePicker = ref(false)
 const currentDate = ref(new Date().getTime())
-const uFormRef = ref<any>(null)
+const uFormRef = ref<UviewFormRef | null>(null)
 
 // 表单数据
-const form = reactive<FormState>({
+const form = reactive<DonationApplyFormState>({
   patientName: '',
   patientIdCard: '',
   contactPhone: '',
@@ -231,7 +218,7 @@ const rules = {
       trigger: ['blur', 'change']
     },
     {
-      validator: (rule: any, value: any, callback: any) => {
+      validator: (_rule: unknown, value: string, _callback: FormRuleCallback) => {
         return /^\d{17}[\dXx]$/.test(value)
       },
       message: '身份证号格式不正确',
@@ -246,7 +233,7 @@ const rules = {
       trigger: ['blur', 'change']
     },
     {
-      validator: (rule: any, value: any, callback: any) => {
+      validator: (_rule: unknown, value: string, _callback: FormRuleCallback) => {
         return /^1[3-9]\d{9}$/.test(value)
       },
       message: '手机号格式不正确',
@@ -274,13 +261,13 @@ const rules = {
 }
 
 // 文件列表
-const fileList = ref<any[]>([])
+const fileList = ref<UploadFileItem[]>([])
 const uploadedFileUrls = ref<string[]>([])
 
 // 加载项目信息
 const loadProjectInfo = async (id: number) => {
   try {
-    const res = await request.get(`/api/resource/drug/donations/${id}`)
+    const res = await drugApi.getDonation(Number(id))
     projectInfo.value = res.data
   } catch (error) {
     console.error('加载项目信息失败:', error)
@@ -289,14 +276,15 @@ const loadProjectInfo = async (id: number) => {
 }
 
 // 删除图片
-const deletePic = (event: any) => {
+const deletePic = (event: { index: number }) => {
   fileList.value.splice(event.index, 1)
   uploadedFileUrls.value.splice(event.index, 1)
 }
 
 // 新增图片
-const afterRead = async (event: any) => {
-  const files = Array.isArray(event) ? event : [event]
+const afterRead = async (event: UploadAfterReadEvent | UploadFileItem) => {
+  const raw = 'file' in event ? event.file : event
+  const files = Array.isArray(raw) ? raw : [raw]
   
   for (const file of files) {
     // 设置初始状态
@@ -330,20 +318,21 @@ const afterRead = async (event: any) => {
       
       file.status = 'success'
       file.message = ''
-      ;(file as any).serverUrl = uploadRes
+      file.serverUrl = uploadRes
       uploadedFileUrls.value.push(uploadRes)
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       file.status = 'failed'
       file.message = '上传失败'
-      uni.showToast({ title: error.message || '文件上传失败', icon: 'none' })
+      const msg = error instanceof Error ? error.message : '文件上传失败'
+      uni.showToast({ title: msg, icon: 'none' })
     }
   }
 }
 
 // 日期选择确认
-const confirmDate = (e: any) => {
-  const date = new Date(e.value)
+const confirmDate = (e: PickerConfirmEvent) => {
+  const date = new Date(Number(e.value))
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
@@ -376,7 +365,7 @@ const submitForm = async () => {
   uni.showLoading({ title: '提交中...', mask: true })
 
   try {
-    await request.post(`/api/resource/drug/donations/${projectId.value}/apply`, {
+    await drugApi.applyDonation(projectId.value, {
       projectId: projectId.value,
       patientName: form.patientName,
       patientIdCard: form.patientIdCard,

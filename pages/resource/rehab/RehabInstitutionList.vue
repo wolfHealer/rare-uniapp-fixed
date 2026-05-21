@@ -91,20 +91,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { rehabApi } from '@/api/rehab'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type {
+  RehabInstitutionItem,
+  RehabInstitutionFilterParams,
+  RehabListQuery
+} from '@/types/rehab'
 
-// --- 响应式数据 ---
 const keyword = ref('')
-const institutions = ref<any[]>([])
-const loading = ref(false)
-const institutionLoadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-const institutionPage = ref(1)
-const institutionPageSize = ref(10)
-
-// 筛选参数状态
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<RehabInstitutionFilterParams>({
   disease: {},     
   region: {}       
 })
@@ -126,104 +124,60 @@ const institutionConfigs: FilterConfigItem[] = [
 // --- 辅助函数 ---
 
 // 组合地址显示
-const getFullAddress = (item: any) => {
+const getFullAddress = (item: RehabInstitutionItem) => {
   const parts = [item.provinceName, item.cityName, item.districtName, item.address].filter(Boolean)
   return parts.join('') || '地址不详'
 }
 
-// --- 业务逻辑 ---
-
-const fetchInstitutions = async (isRefresh = false) => {
-  if (isRefresh) {
-    institutionPage.value = 1
-    institutions.value = []
-    institutionLoadStatus.value = 'loading'
-  }
-  
-  if (institutionLoadStatus.value === 'nomore' && !isRefresh) return
-
-  loading.value = true
-  
-  try {
-    const params: Record<string, any> = {
-      page: institutionPage.value,
-      pageSize: institutionPageSize.value
-    }
-
-    // 1. 处理关键词搜索
-    if (keyword.value) {
-      params.keyword = keyword.value
-    }
-
-    // 2. 处理疾病筛选
-    const diseaseVal = filterParams.value.disease || {}
-    if (diseaseVal.diseaseId) {
-      params.diseaseId = diseaseVal.diseaseId
-    }
-
-    // 3. 处理地区筛选
-    const regionData = filterParams.value.region || {}
-    if (regionData.provinceCode) params.provinceCode = regionData.provinceCode
-    if (regionData.cityCode) params.cityCode = regionData.cityCode
-    if (regionData.districtCode) params.districtCode = regionData.districtCode
-
-    const res = await request.get('/api/resource/rehab/institutions', params)
-    
-    // 适配数据结构: res.data.list
-    const responseData = res.data || {}
-    const records = responseData.list || []
-    
-    institutions.value.push(...records)
-    
-    if (records.length < institutionPageSize.value) {
-      institutionLoadStatus.value = 'nomore'
-    } else {
-      institutionLoadStatus.value = 'loadmore'
-      institutionPage.value++
-    }
-  } catch (error) {
-    console.error('获取康复机构失败:', error)
-    institutionLoadStatus.value = 'loadmore'
-    uni.showToast({ title: '加载失败', icon: 'none' })
-  } finally {
-    loading.value = false
-  }
+const buildQueryParams = (page: number, pageSize: number): RehabListQuery => {
+  const params: RehabListQuery = { page, pageSize }
+  if (keyword.value) params.keyword = keyword.value
+  const diseaseVal = filterParams.value.disease || {}
+  if (diseaseVal.diseaseId) params.diseaseId = diseaseVal.diseaseId
+  const regionData = filterParams.value.region || {}
+  if (regionData.provinceCode) params.provinceCode = regionData.provinceCode
+  if (regionData.cityCode) params.cityCode = regionData.cityCode
+  if (regionData.districtCode) params.districtCode = regionData.districtCode
+  return params
 }
 
-// 事件处理
-const loadMore = () => fetchInstitutions()
+const {
+  list: institutions,
+  loading,
+  loadStatus: institutionLoadStatus,
+  refresh,
+  onLoadMore
+} = usePagedList<RehabInstitutionItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await rehabApi.listInstitutions(buildQueryParams(page, pageSize))
+    const records = res.data?.list || []
+    return { list: records, hasMore: records.length >= pageSize }
+  }
+})
 
-const handleSearch = () => fetchInstitutions(true)
-
+const loadMore = () => onLoadMore()
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  fetchInstitutions(true)
+  refresh()
 }
-
-const handleFilterChange = () => {
-  fetchInstitutions(true)
-}
-
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    disease: {},
-    region: {}
-  }
-  fetchInstitutions(true)
+  filterParams.value = { disease: {}, region: {} }
+  refresh()
 }
 
-const openDetail = (item: any) => {
+const openDetail = (item: RehabInstitutionItem) => {
   if (!item?.id) return
   uni.navigateTo({ url: `/pages/resource/rehab/RehabInstitutionDetail?id=${item.id}` })
 }
 
-const viewDetails = (item: any) => {
+const viewDetails = (item: RehabInstitutionItem) => {
   openDetail(item)
 }
 
-onMounted(() => {
-  fetchInstitutions()
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

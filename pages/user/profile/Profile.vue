@@ -147,8 +147,8 @@ const userStore = useUserStore()
 // 默认头像
 const defaultAvatar = '/static/tabbar/profile.png' 
 
-// 计算是否登录 (根据 token 或 userInfo 存在与否判断)
-const isLoggedIn = computed(() => !!userStore.token)
+// 与 Community、request 401 处理一致：需同时有 token 与 userInfo
+const isLoggedIn = computed(() => userStore.isLoggedIn())
 const userInfo = computed(() => userStore.userInfo)
 
 // 菜单配置

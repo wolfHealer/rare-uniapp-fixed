@@ -58,17 +58,17 @@ import ProvinceCityPicker from '@/components/ProvinceCityPicker.vue' // 引入�
 import HospitalPicker from './modules/HospitalPicker.vue'
 import DiseasePicker from './modules/DiseasePicker.vue'
 import TagPicker from './modules/TagPicker.vue'
-import type { FilterConfigItem } from '@/types/filter'
+import type { FilterConfigItem, FilterParamsMap } from '@/types/filter'
 
 const props = defineProps<{
   show: boolean
-  modelValue: Record<string, any>
+  modelValue: FilterParamsMap
   configs: FilterConfigItem[]
 }>()
 
 const emit = defineEmits(['update:show', 'update:modelValue', 'confirm', 'reset'])
 
-const formData = ref<Record<string, any>>({})
+const formData = ref<FilterParamsMap>({})
 
 // 初始化表单数据
 watch(() => props.show, (val) => {
@@ -92,7 +92,7 @@ watch(() => props.show, (val) => {
 const handleClose = () => emit('update:show', false)
 
 const handleReset = () => {
-  const emptyData: any = {}
+  const emptyData: FilterParamsMap = {}
   props.configs.forEach(c => {
     // 增加 provinceCity 的重置逻辑
     if (c.type === 'region' || c.type === 'provinceCity' || c.type === 'hospital' || c.type === 'disease') {

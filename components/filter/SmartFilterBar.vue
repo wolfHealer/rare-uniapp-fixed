@@ -27,18 +27,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import SmartFilterPopup from './SmartFilterPopup.vue'
-import type { FilterConfigItem } from '@/types/filter' // 确保你有这个类型定义
+import type { FilterConfigItem, FilterParamsMap } from '@/types/filter'
 
 const props = defineProps<{
   configs: FilterConfigItem[]
-  modelValue: Record<string, any>
+  modelValue: FilterParamsMap
 }>()
 
 const emit = defineEmits(['update:modelValue', 'change', 'reset'])
 
 const showPopup = ref(false)
-// 临时参数，用于在弹窗中编辑，确认后才会同步给父组件
-const tempParams = ref<Record<string, any>>({})
+const tempParams = ref<FilterParamsMap>({})
 
 // 打开弹窗时，深拷贝当前值到临时变量，防止编辑过程中直接影响页面状态
 const openPopup = () => {
@@ -118,7 +117,7 @@ const getDisplayText = (config: FilterConfigItem) => {
   // 5. 标签类型
   if (config.type === 'tags') {
     if (!val || val === 'all') return config.label
-    const option = config.options?.find((opt: any) => opt.value === val)
+    const option = config.options?.find((opt) => opt.value === val)
     return option ? option.label : config.label
   }
   
@@ -127,7 +126,7 @@ const getDisplayText = (config: FilterConfigItem) => {
 
 
 // 确认筛选
-const handleConfirm = (val: any) => {
+const handleConfirm = (val: FilterParamsMap) => {
   // 更新父组件的 v-model
   emit('update:modelValue', val)
   // 触发 change 事件，通知父组件重新加载数据

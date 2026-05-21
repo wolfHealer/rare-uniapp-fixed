@@ -22,16 +22,10 @@
     </view>
 
     <!-- 列表内容区 -->
-    <scroll-view scroll-y class="content-scroll">
+    <scroll-view scroll-y class="content-scroll" @scrolltolower="onLoadMore">
       <view class="p-4">
-        <!-- 加载状态 -->
-        <view v-if="loading" class="mt-4 flex justify-center items-center">
-          <u-loading-icon mode="circle"></u-loading-icon>
-          <text class="ml-2 text-gray-500">加载中...</text>
-        </view>
-
         <!-- 求助渠道列表 -->
-        <u-cell-group v-else>
+        <u-cell-group v-if="channels.length > 0">
           <u-cell
             v-for="item in channels"
             :key="item.id"
@@ -50,8 +44,13 @@
           </u-cell>
         </u-cell-group>
 
-        <!-- 空状态 -->
         <u-empty v-if="!loading && channels.length === 0" mode="data" text="暂无求助渠道"></u-empty>
+
+        <u-loadmore
+          v-if="channels.length > 0"
+          :status="loadStatus"
+          @loadmore="onLoadMore"
+        />
 
         <!-- 模板下载 -->
         <view class="mt-4 text-center">
@@ -66,37 +65,15 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { charityApi } from '@/api/charity'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type { HelpChannelFilterParams, ChannelTypeTagMap, CharityListQuery, HelpChannelItem } from '@/types/charity'
 
-// 渠道类型定义更新
-interface Channel {
-  id: number
-  channelType: string // 修改点: type -> channelType
-  name: string
-  applyCondition: string // 修改点: desc -> applyCondition
-  responseTime: string
-  contactPhone: string
-  contactUrl: string
-  helpLetterTemplate: string
-  crowdfundingTemplate: string
-  auditStatus: number
-  sort: number
-  createdAt: string
-  updatedAt: string
-}
-
-// 列表数据
-const channels = ref<Channel[]>([])
-const loading = ref(false)
 const downloading = ref(false)
-
-// 搜索关键词
 const keyword = ref('')
-
-// 筛选参数状态
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<HelpChannelFilterParams>({
   channelType: '' 
 })
 
@@ -119,7 +96,7 @@ const channelConfigs: FilterConfigItem[] = [
 
 // 获取渠道类型标签样式
 const getChannelTypeTag = (type: string) => {
-  const tagMap: Record<string, any> = {
+  const tagMap: ChannelTypeTagMap = {
     emergency_help: 'success',
     crowdfunding: 'primary',
     charity_consulting: 'warning',
@@ -139,37 +116,23 @@ const getChannelTypeLabel = (type: string) => {
   return labelMap[type] || '其他'
 }
 
-// 获取求助渠道列表
-const fetchChannels = async () => {
-  loading.value = true
-  try {
-    const params: Record<string, any> = {}
-
-    if (keyword.value && keyword.value.trim() !== '') {
-      params.keyword = keyword.value.trim()
-    }
-
-    if (filterParams.value.channelType) {
-      params.channelType = filterParams.value.channelType // 确保参数名与后端一致
-    }
-
-    const res = await request.get('/api/resource/charity/channels', params)
-    
-    // 接口返回结构: res.data.list
-    const resultData = res.data || res; 
-    channels.value = resultData.list || [];
-
-  } catch (error) {
-    console.error('获取求助渠道失败:', error)
-    channels.value = []
-    uni.showToast({ title: '加载失败，请重试', icon: 'none' })
-  } finally {
-    loading.value = false
-  }
+const buildQueryParams = (page: number, pageSize: number): CharityListQuery => {
+  const params: CharityListQuery = { page, pageSize }
+  if (keyword.value.trim()) params.keyword = keyword.value.trim()
+  if (filterParams.value.channelType) params.channelType = filterParams.value.channelType
+  return params
 }
 
-// 联系/查看详情
-const contact = (item: Channel) => {
+const { list: channels, loading, loadStatus, refresh, onLoadMore } = usePagedList<HelpChannelItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await charityApi.listChannels(buildQueryParams(page, pageSize))
+    const records = res.data?.list || []
+    return { list: records, hasMore: records.length >= pageSize }
+  }
+})
+
+const contact = (item: HelpChannelItem) => {
   if (!item?.id) {
     uni.showToast({ title: '渠道信息不完整', icon: 'none' })
     return
@@ -185,7 +148,7 @@ const downloadTemplate = async () => {
   try {
     // 假设模板接口不变，或者从第一个渠道获取模板作为示例
     // 这里为了演示，暂时保持原逻辑，实际可能需要调整
-    const res = await request.get('/api/resource/charity/channels/template')
+    const res = await charityApi.getChannelTemplate()
     const data = res.data || {}
 
     if (data.templates && data.templates.length > 0) {
@@ -202,30 +165,18 @@ const downloadTemplate = async () => {
   }
 }
 
-// --- 事件处理 ---
-const handleSearch = () => {
-  fetchChannels()
-}
-
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  fetchChannels()
+  refresh()
 }
-
-const handleFilterChange = () => {
-  fetchChannels()
-}
-
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    channelType: ''
-  }
-  fetchChannels()
+  filterParams.value = { channelType: '' }
+  refresh()
 }
 
-onMounted(() => {
-  fetchChannels()
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

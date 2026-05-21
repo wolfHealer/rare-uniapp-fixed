@@ -132,54 +132,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import request from '@/utils/request'
+import { knowledgeApi } from '@/api/knowledge'
+import type { ArticleDetailData } from '@/types/knowledge'
 
-// 类型定义
-interface BlockExtra {
-  url?: string
-  width?: number
-  height?: number
-  question?: string
-  answer?: string
-}
-
-interface ContentBlock {
-  id: number
-  blockType: 'text' | 'image' | 'faq' | string
-  sortNo: number
-  title?: string
-  content?: string
-  extra?: BlockExtra | null
-}
-
-interface Tag {
-  id: number
-  name: string
-  type?: string
-}
-
-interface Article {
-  id: number
-  title: string
-  summary?: string
-  coverImage?: string
-  contentType?: string
-  authorId?: number
-  sourceName: string
-  sourceUrl?: string
-  status?: number
-  publishTime: string
-  viewCount: number
-  likeCount: number
-  favoriteCount: number
-  isTop?: number
-  isRecommend?: number
-  blocks?: ContentBlock[]
-  tags?: Tag[]
-}
-
-// 响应式数据
-const article = ref<Article | null>(null)
+const article = ref<ArticleDetailData | null>(null)
 const loading = ref(false)
 const articleId = ref<number | null>(null)
 const liked = ref(false)
@@ -287,7 +243,7 @@ const goBack = () => {
 const loadArticleDetail = async (id: number) => {
   loading.value = true
   try {
-    const res = await request.get(`/api/knowledge/article/${id}`)
+    const res = await knowledgeApi.getArticle(id)
     
     console.log('=== 文章详情接口完整响应 ===')
     console.log('res:', res)

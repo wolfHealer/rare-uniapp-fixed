@@ -43,6 +43,7 @@ import DrugList from './DrugList.vue'
 import DonationProject from './DonationProjectList.vue'
 import ChannelList from './ChannelList.vue'
 import BottomNav from '@/components/BottomNav.vue'
+import type { TabChangeEvent } from '@/types/ui'
 
 const activeTab = ref(0)
 
@@ -52,7 +53,7 @@ const tabList = ref([
   { name: '购药渠道' }
 ])
 
-const onTabChange = (item: any) => {
+const onTabChange = (item: TabChangeEvent) => {
   activeTab.value = item.index
 }
 

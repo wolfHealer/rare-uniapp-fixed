@@ -62,25 +62,21 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
-// 引入智能筛选组件
+import { medicareApi } from '@/api/medicare'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type { PolicyItem } from '@/types/medicare'
+import type { DiseaseFilterValue, RegionSelection } from '@/types/common'
 
-// 分页
-const currentPage = ref(1)
-const pageSize = ref(10)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-
-// 列表数据
-const list = ref<any[]>([])
-const loading = ref(false)
 const downloading = ref(false)
 
-// 筛选参数状态
-const filterParams = ref<Record<string, any>>({
-  disease: {},   // 疾病 (对应后端 disease_id)
-  region: {}         // 地区对象 { provinceCode, cityCode, ... }
+const filterParams = ref<{
+  disease: DiseaseFilterValue
+  region: RegionSelection
+}>({
+  disease: {},
+  region: {}
 })
 
 // 筛选配置 (Core Logic)
@@ -97,104 +93,48 @@ const policyConfigs: FilterConfigItem[] = [
   }
 ]
 
-// 获取政策列表
-const fetchPolicies = async (isRefresh = false) => {
-  if (isRefresh) {
-    currentPage.value = 1
-    list.value = []
-  }
-  
-  if (loadStatus.value === 'nomore' && !isRefresh) return
+const buildQueryParams = (page: number, pageSize: number) => {
+  const params: Record<string, unknown> = { page, pageSize }
+  const diseaseVal = filterParams.value.disease || {}
+  if (diseaseVal.diseaseId) params.disease_id = diseaseVal.diseaseId
+  const region = filterParams.value.region || {}
+  if (region.provinceCode) params.province_code = region.provinceCode
+  if (region.cityCode) params.city_code = region.cityCode
+  return params
+}
 
-  loading.value = true
-  if (isRefresh) {
-    loadStatus.value = 'loading'
-  }
-
-  try {
-    const params: Record<string, any> = {
-      page: currentPage.value,
-      pageSize: pageSize.value // 注意：后端返回字段是 pageSize，这里保持一致
-    }
-
-   // 1. 处理疾病筛选 (从对象中取值)
-    const diseaseVal = filterParams.value.disease || {}
-    if (diseaseVal.diseaseId) {
-      params.disease_id = diseaseVal.diseaseId
-    }
-
-    // 2. 处理地区筛选
-    const region = filterParams.value.region || {}
-    if (region.provinceCode) {
-      params.province_code = region.provinceCode
-    }
-    if (region.cityCode) {
-      params.city_code = region.cityCode
-    }
-
-    const res = await request.get('/api/resource/medicare/policies', params)
-    
-    // --- 核心修改开始：适配新的返回结构 ---
+const { list, loading, loadStatus, refresh, onLoadMore } = usePagedList<PolicyItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await medicareApi.listPolicies(buildQueryParams(page, pageSize))
     const apiData = res.data || {}
     const policiesObj = apiData.policies || {}
-    
-    // 合并 national, province, city 三个数组
-    const nationalList = policiesObj.national || []
-    const provinceList = policiesObj.province || []
-    const cityList = policiesObj.city || []
-    
-    const newRecords = [...nationalList, ...provinceList, ...cityList]
-    
-    // 更新总条数 (用于判断是否还有更多)
+    const newRecords = [
+      ...(policiesObj.national || []),
+      ...(policiesObj.province || []),
+      ...(policiesObj.city || [])
+    ]
     const total = apiData.total || 0
-    
-    list.value.push(...newRecords)
-    
-    // 判断是否还有更多数据
-    // 如果当前累计列表长度 >= 总数，或者本次返回为空，则没有更多
-    if (list.value.length >= total || newRecords.length === 0) {
-      loadStatus.value = 'nomore'
-    } else {
-      loadStatus.value = 'loadmore'
-      currentPage.value++
-    }
-    // --- 核心修改结束 ---
-
-  } catch (error) {
-    console.error('获取政策失败:', error)
-    loadStatus.value = 'loadmore'
-    uni.showToast({ title: '加载失败，请重试', icon: 'none' })
-  } finally {
-    loading.value = false
+    const loadedCount = (page - 1) * pageSize + newRecords.length
+    const hasMore = newRecords.length > 0 && loadedCount < total
+    return { list: newRecords, hasMore }
   }
-}
+})
 
-const onLoadMore = () => {
-  fetchPolicies()
-}
-
-// 当 SmartFilterBar 触发 change 事件
-const handleFilterChange = () => {
-  fetchPolicies(true)
-}
-
-// 当 SmartFilterBar 触发 reset 事件
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    disease: {}, // 重置为空对象
-    region: {}
-  }
-  fetchPolicies(true)
+  filterParams.value = { disease: {}, region: {} }
+  refresh()
 }
 
-const open = (item: any) => {
+const open = (item: PolicyItem) => {
   uni.navigateTo({
     url: `/pages/resource/medicare/PolicyDetail?id=${item.id}`
   })
 }
 
 // 辅助函数：显示地区名称
-const getDisplayRegion = (item: any) => {
+const getDisplayRegion = (item: PolicyItem) => {
   return item.region || '全国'
 }
 
@@ -211,9 +151,7 @@ const downloadMaterials = async () => {
   }
 }
 
-onMounted(() => {
-  fetchPolicies(true)
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

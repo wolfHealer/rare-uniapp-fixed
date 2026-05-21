@@ -1,1 +1,0 @@
-{"version":3,"file":"DoctorList.js","sources":["pages/resource/medical/DoctorList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/medical/DoctorList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,WAAe,eAAA;"}

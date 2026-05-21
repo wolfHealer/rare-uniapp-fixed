@@ -1,9 +1,0 @@
-{
-  "navigationBarTitleText": "分类详情",
-  "usingComponents": {
-    "u-icon": "../../../node-modules/uview-plus/components/u-icon/u-icon",
-    "u-loading-icon": "../../../node-modules/uview-plus/components/u-loading-icon/u-loading-icon",
-    "u-empty": "../../../node-modules/uview-plus/components/u-empty/u-empty",
-    "bottom-nav": "../../../components/BottomNav"
-  }
-}

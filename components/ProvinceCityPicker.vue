@@ -29,15 +29,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
-import request from '@/utils/request'
-
-// 定义地区节点类型
-interface RegionNode {
-  code: string
-  name: string
-  level: number
-  children?: RegionNode[]
-}
+import { regionApi } from '@/api/region'
+import type { RegionNode } from '@/types/common'
+import type { PickerChangeEvent, PickerConfirmEvent } from '@/types/ui'
 
 // 定义绑定值接口：只包含省和市
 export interface ProvinceCityValue {
@@ -69,7 +63,7 @@ const show = ref(false)
 const loading = ref(false)
 
 const regionTree = ref<RegionNode[]>([])
-const columns = ref<any[][]>([])
+const columns = ref<RegionNode[][]>([])
 
 // 当前选中的索引
 const currentProvinceIndex = ref(0)
@@ -145,16 +139,10 @@ const findIndexesByValue = (value: ProvinceCityValue) => {
 const loadRegionData = async () => {
   try {
     loading.value = true
-    const res = await request.get('/api/region/province-city-tree')
-    
-    let treeData: RegionNode[] = []
-    // 适配返回结构 { code: 200, data: [...] }
-    if (res.code === 200 || res.code === 0) {
-      treeData = res.data || []
-    } else if (Array.isArray(res)) {
-      treeData = res
-    } else if (res.data && Array.isArray(res.data)) {
-      treeData = res.data
+    const res = await regionApi.getProvinceCityTree()
+    let treeData: RegionNode[] = Array.isArray(res.data) ? res.data : []
+    if (!treeData.length && res.data && Array.isArray((res.data as { data?: RegionNode[] }).data)) {
+      treeData = (res.data as { data: RegionNode[] }).data
     }
 
     regionTree.value = treeData
@@ -189,7 +177,7 @@ const handleCancel = () => {
 }
 
 // 处理列变化联动
-const handleChange = (e: any) => {
+const handleChange = (e: PickerChangeEvent) => {
   const { columnIndex, index, indexs } = e
 
   // 如果改变的是第一列（省份）
@@ -213,7 +201,7 @@ const handleChange = (e: any) => {
 }
 
 // 确认选择
-const handleConfirm = (e: any) => {
+const handleConfirm = (e: PickerConfirmEvent) => {
   const values = e.value || []
   const province = values[0] || {}
   const city = values[1] || {}

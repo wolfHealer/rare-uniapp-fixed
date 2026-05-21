@@ -6,7 +6,8 @@
       "utils/*": ["./utils/*"],
       "components/*": ["./components/*"],
       "stores/*": ["./stores/*"],
-      "api/*": ["./api/*"]
+      "api/*": ["./api/*"],
+      "composables/*": ["./composables/*"]
     },
     "target": "esnext",
     "module": "esnext",

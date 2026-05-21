@@ -44,6 +44,7 @@ import RehabGuide from './RehabGuideList.vue'
 import PsychologicalOrgList from './PsychologicalOrgList.vue'
 import RehabInstitutionList from './RehabInstitutionList.vue'
 import BottomNav from '@/components/BottomNav.vue'
+import type { TabChangeEvent } from '@/types/ui'
 
 const activeTab = ref(0)
 
@@ -53,7 +54,7 @@ const tabList = ref([
   { name: '康复机构对接' }
 ])
 
-const onTabChange = (item: any) => {
+const onTabChange = (item: TabChangeEvent) => {
   activeTab.value = item.index
 }
 

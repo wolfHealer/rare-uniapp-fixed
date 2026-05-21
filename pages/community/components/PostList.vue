@@ -21,7 +21,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import PostCard from './PostCard.vue'
-import request from '@/utils/request'
+import { communityApi } from '@/api/community'
+import type { CommunityPost, PostCommentEmitPayload } from '@/types/community'
 
 const props = defineProps<{
   diseaseId: number | null
@@ -31,7 +32,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['comment', 'preview-image'])
 
-const list = ref<any[]>([])
+const list = ref<CommunityPost[]>([])
 const loading = ref(false)
 const finished = ref(false)
 const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
@@ -57,22 +58,20 @@ const fetchPosts = async (isRefresh = false) => {
   loading.value = true
   
   try {
-    const res = await request.get('/api/community/posts', 
-       {
-        disease_id: props.diseaseId,
-        type: props.type === 'all' ? undefined : props.type,
-        sort: props.sort,
-        page,
-        limit: 10
-      }
-    )
+    const res = await communityApi.listPosts({
+      disease_id: props.diseaseId,
+      type: props.type === 'all' ? undefined : props.type,
+      sort: props.sort,
+      page,
+      limit: 10
+    })
 
     // 检查是否是最新的请求，如果不是则丢弃结果
     if (currentRequestId !== lastRequestId) {
       return
     }
 
-    const records = res.data.records || []
+    const records = res.data.list || []
     
     if (isRefresh) {
       list.value = records
@@ -112,7 +111,7 @@ const onLoadMore = () => {
   }
 }
 
-const onComment = (data: { post: any; newComment?: any; comments?: any[] }) => {
+const onComment = (data: PostCommentEmitPayload) => {
   emit('comment', data)
 }
 

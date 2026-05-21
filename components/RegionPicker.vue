@@ -30,15 +30,9 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 // 1. 引入 request 工具，替换原有的 api 导入
-import request from '@/utils/request'
-
-// 定义地区节点类型，用于内部逻辑
-interface RegionNode {
-  code: string
-  name: string
-  level: number
-  children?: RegionNode[]
-}
+import { regionApi } from '@/api/region'
+import type { RegionNode } from '@/types/common'
+import type { PickerChangeEvent, PickerConfirmEvent } from '@/types/ui'
 
 export interface RegionValue {
   provinceCode: string
@@ -71,7 +65,7 @@ const show = ref(false)
 const loading = ref(false)
 
 const regionTree = ref<RegionNode[]>([])
-const columns = ref<any[][]>([])
+const columns = ref<RegionNode[][]>([])
 
 const currentProvinceIndex = ref(0)
 const currentCityIndex = ref(0)
@@ -166,25 +160,8 @@ const loadRegionTree = async () => {
   try {
     loading.value = true
     // 直接调用接口，仿照 loadDiseaseOptions 的方式
-    const res = await request.get('/api/region/tree')
-    
-    // 处理返回数据，兼容不同的响应结构
-    // 假设 res.data 是数组，或者 res 本身就是数组（取决于 request 拦截器是否已 unwrap data）
-    // 根据通常的 axios/unii-request 封装，res.data 通常是后端返回的整个对象 { code, data, msg }
-    // 所以我们需要取 res.data.data 或者 res.data
-    
-    let treeData: RegionNode[] = []
-    if (res.code === 0 || res.code === 200) {
-       treeData = res.data || []
-    } else if (Array.isArray(res)) {
-       // 如果拦截器已经处理了 data，res 可能就是数组
-       treeData = res
-    } else if (res.data && Array.isArray(res.data)) {
-       // 常见情况：res 是 { code: 0, data: [...] }
-       treeData = res.data
-    }
-
-    regionTree.value = treeData
+    const res = await regionApi.getTree()
+    regionTree.value = Array.isArray(res.data) ? res.data : []
 
     // 数据加载完成后，根据当前值构建列
     const indexes = findIndexesByValue(normalizedValue.value)
@@ -223,7 +200,7 @@ const handleCancel = () => {
   show.value = false
 }
 
-const handleChange = (e: any) => {
+const handleChange = (e: PickerChangeEvent) => {
   const { columnIndex, index, indexs } = e
 
   if (columnIndex === 0) {
@@ -270,7 +247,7 @@ const handleChange = (e: any) => {
   }
 }
 
-const handleConfirm = (e: any) => {
+const handleConfirm = (e: PickerConfirmEvent) => {
   const values = e.value || []
   const province = values[0] || {}
   const city = values[1] || {}

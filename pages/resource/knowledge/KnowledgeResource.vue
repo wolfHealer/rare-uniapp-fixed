@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { KnowledgeCategory } from '@/types/knowledge'
 import BottomNav from '@/components/BottomNav.vue'
 
 // 搜索关键词
@@ -115,8 +116,7 @@ const goToHotArticles = () => {
   uni.showToast({ title: '功能开发中', icon: 'none' })
 }
 
-// 🧠 点击分类卡片交互逻辑
-const goToCategory = (category: any) => {
+const goToCategory = (category: KnowledgeCategory) => {
   console.log('点击分类:', category.name, 'ID:', category.id) // 【关键调试日志】
   
   const name = encodeURIComponent(category.name)

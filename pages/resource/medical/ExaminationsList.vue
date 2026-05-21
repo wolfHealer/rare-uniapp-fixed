@@ -13,7 +13,7 @@
     </view>
 
     <!-- 列表 -->
-    <view class="list-box">
+    <scroll-view scroll-y class="list-box" @scrolltolower="onLoadMore">
       <u-cell-group>
         <u-cell
           v-for="item in list"
@@ -34,53 +34,37 @@
         </u-cell>
       </u-cell-group>
 
-      <!-- 空状态 -->
       <u-empty 
         v-if="!loading && list.length === 0" 
         mode="data" 
         text="暂无检查项目数据"
       ></u-empty>
 
-      <!-- 加载状态 -->
-      <view v-if="loading" class="loading-more">
+      <view v-if="loading && list.length === 0" class="loading-more">
         <u-loading-icon mode="circle"></u-loading-icon>
       </view>
 
-      <!-- 分页信息 -->
       <view v-if="total > 0" class="pagination-info">
         <text>共 {{ total }} 条记录</text>
       </view>
       
-      <!-- 加载更多 -->
       <u-loadmore 
         :status="loadStatus" 
         v-if="list.length > 0"
       />
-    </view>
+    </scroll-view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { medicalApi } from '@/api/medical'
+import { usePagedList } from '@/composables/usePagedList'
+import type { ExaminationListItem } from '@/types/medical'
 
-// 类型定义：匹配接口返回字段
-interface InspectionItem {
-  id: number
-  examName: string
-  examPurpose: string
-  examType?: string
-  price?: number
-  duration?: string
-  sampleNotes?: string
-  institution?: string
-  diseaseIds?: number[]
-  sort?: number
-  createdAt?: string
-  updatedAt?: string
-}
+const keyword = ref('')
+const total = ref(0)
 
-// 检查类型映射表
 const EXAM_TYPE_MAP: Record<string, string> = {
   lab: '实验室检查',
   metabolic: '代谢筛查',
@@ -93,88 +77,37 @@ const EXAM_TYPE_MAP: Record<string, string> = {
   other: '其他'
 }
 
-// 响应式数据
-const keyword = ref('')
-const list = ref<InspectionItem[]>([])
-const loading = ref(false)
-const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-
-// 获取检查类型的中文文本
 const getExamTypeText = (type: string) => {
   return EXAM_TYPE_MAP[type] || type
 }
 
-// 加载检查项目列表
-const loadInspectionList = async (isRefresh = false) => {
-  if (isRefresh) {
-    page.value = 1
-    list.value = []
-  }
-  
-  if (loadStatus.value === 'nomore' && !isRefresh) return
-
-  loading.value = true
-  loadStatus.value = 'loading'
-  
-  try {
-    const res = await request.get('/api/resource/medical/examinations', {
-      params: {
-        keyword: keyword.value,
-        page: page.value,
-        pageSize: pageSize.value
-      }
+const { list, loading, loadStatus, refresh, onLoadMore } = usePagedList<ExaminationListItem>({
+  pageSize: 20,
+  fetchPage: async (page, pageSize) => {
+    const res = await medicalApi.listExaminations({
+      keyword: keyword.value,
+      page,
+      pageSize
     })
-    
-    // 接口返回结构: { code: 200, data: { list: [], total: 5 }, message: "success" }
-    const responseData = res.data || {}
-    const records = responseData.list || []
-    
-    if (isRefresh) {
-      list.value = records
-    } else {
-      list.value.push(...records)
-    }
-    
-    total.value = responseData.total || 0
-    
-    if (records.length < pageSize.value) {
-      loadStatus.value = 'nomore'
-    } else {
-      loadStatus.value = 'loadmore'
-      page.value++
-    }
-  } catch (error) {
-    console.error('加载检查项目列表失败:', error)
-    uni.showToast({ title: '加载失败', icon: 'none' })
-    loadStatus.value = 'loadmore'
-  } finally {
-    loading.value = false
+    const records = res.data?.list || []
+    total.value = res.data?.total || 0
+    return { list: records, hasMore: records.length >= pageSize }
   }
-}
+})
 
-// 打开详情页
-const open = (item: InspectionItem) => {
+const open = (item: ExaminationListItem) => {
   uni.navigateTo({
     url: `/pages/resource/medical/ExaminationDetail?id=${item.id}`
   })
 }
 
-// 搜索处理
-const onSearch = () => {
-  loadInspectionList(true)
-}
-
+const onSearch = () => refresh()
 const onClear = () => {
   keyword.value = ''
-  loadInspectionList(true)
+  refresh()
 }
 
-onMounted(() => {
-  loadInspectionList()
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped>
@@ -182,10 +115,17 @@ onMounted(() => {
   min-height: 100vh;
   background-color: #f9fafb;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .search-box {
   margin-bottom: 12px;
+}
+
+.list-box {
+  flex: 1;
+  height: 0;
 }
 
 .loading-more {

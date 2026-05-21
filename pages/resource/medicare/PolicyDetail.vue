@@ -104,26 +104,11 @@
 import { ref } from 'vue'
 // 1. 引入 uni-app 的 onLoad
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { medicareApi } from '@/api/medicare'
+import { downloadAndOpenDocument } from '@/utils/download'
+import type { PolicyDetailData } from '@/types/medicare'
 
-// 类型定义
-interface PolicyDetail {
-  id: number
-  title: string
-  region: string
-  regionCode: string
-  publishDate: string
-  category: string
-  content: string
-  fileUrl: string
-  relatedPolicies?: Array<{
-    id: number
-    title: string
-  }>
-}
-
-// 响应式数据
-const detail = ref<PolicyDetail | null>(null)
+const detail = ref<PolicyDetailData | null>(null)
 const loading = ref<boolean>(false)
 // 2. 定义 policyId 用于存储页面参数
 const policyId = ref<number | string>('')
@@ -153,7 +138,7 @@ const loadDetail = async () => {
   loading.value = true
   try {
     // 4. 使用 policyId.value 替换 route.params.id
-    const res = await request.get(`/api/resource/medicare/policies/${policyId.value}`)
+    const res = await medicareApi.getPolicy(policyId.value)
     detail.value = res.data || res.data
   } catch (error) {
     console.error('加载政策详情失败:', error)
@@ -164,60 +149,12 @@ const loadDetail = async () => {
   }
 }
 
-// 下载文件 - 替换 window.open/DOM 操作为 uni.downloadFile + uni.openDocument
-const downloadFile = async (url: string, fileName: string) => {
+const downloadFile = (url: string, _fileName?: string) => {
   if (!url) {
     uni.showToast({ title: '文件链接无效', icon: 'none' })
     return
   }
-
-  uni.showLoading({ title: '下载中...' })
-
-  try {
-    let downloadUrl = url
-    
-    // 处理相对路径，拼接完整域名 (微信小程序要求 HTTPS 且配置了合法域名)
-    if (!downloadUrl.startsWith('http')) {
-      // 请替换为你实际的 API 基础域名
-      downloadUrl = 'https://your-api-domain.com' + downloadUrl
-    }
-
-    // 1. 下载文件
-    uni.downloadFile({
-      url: downloadUrl,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          // 2. 打开文档预览
-          uni.openDocument({
-            filePath: res.tempFilePath,
-            fileType: 'pdf', // 指定文件类型，有助于正确预览
-            showMenu: true,   // 显示右上角菜单，允许用户保存/转发
-            success: () => {
-              uni.hideLoading()
-            },
-            fail: (err) => {
-              uni.hideLoading()
-              console.error('打开文档失败', err)
-              uni.showToast({ title: '打开文档失败', icon: 'none' })
-            }
-          })
-        } else {
-          uni.hideLoading()
-          uni.showToast({ title: '下载失败', icon: 'none' })
-        }
-      },
-      fail: (err) => {
-        uni.hideLoading()
-        console.error('下载文件失败', err)
-        uni.showToast({ title: '下载失败，请检查网络或域名配置', icon: 'none' })
-      }
-    })
-
-  } catch (error) {
-    uni.hideLoading()
-    console.error('下载异常', error)
-    uni.showToast({ title: '下载异常', icon: 'none' })
-  }
+  downloadAndOpenDocument({ url: String(url) })
 }
 
 // 查看相关政策 - 替换 router.push 为 uni.navigateTo

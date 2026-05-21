@@ -89,33 +89,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { medicalApi } from '@/api/medical'
+import type { DiseaseBrief, HospitalDetailData } from '@/types/medical'
 
-// 类型定义
-interface DiseaseItem {
-  id: number;
-  name: string;
-  alias?: string;
-}
+const detail = ref<HospitalDetailData | null>(null)
+const loading = ref<boolean>(false)
+const hospitalId = ref<number | null>(null)
 
-interface HospitalDetail {
-  id: number
-  name: string
-  level: string       // 原始等级代码 "1", "2"...
-  levelText: string   // 显示用的中文等级
-  specialty: string   // 诊疗范围
-  address?: string
-  phone?: string
-  rating?: number
-  reviewCount?: number
-  reviews?: any[]
-  isNetworkMember?: boolean
-  latitude?: number
-  longitude?: number
-  diseases?: DiseaseItem[] // 新增：擅长疾病列表
-}
-
-// 等级映射字典
 const levelMap: Record<string, string> = {
   '1': '三级甲等',
   '2': '三级乙等',
@@ -126,24 +106,18 @@ const levelMap: Record<string, string> = {
   '7': '其他'
 }
 
-// 响应式数据
-const detail = ref<HospitalDetail | null>(null)
-const loading = ref<boolean>(false)
-const hospitalId = ref<number | null>(null)
-
-// 辅助函数：转换后端数据为前端格式
-const transformHospitalData = (apiData: any): HospitalDetail => {
+const transformHospitalData = (apiData: Record<string, unknown>): HospitalDetailData => {
+  const level = String(apiData.level ?? '')
   return {
-    id: apiData.id,
-    name: apiData.name,
-    level: apiData.level,
-    levelText: levelMap[apiData.level] || '未知等级',
-    specialty: apiData.treatScope || '', // 映射 treatScope -> specialty
-    address: apiData.address,
-    phone: apiData.phone,
-    isNetworkMember: apiData.isRareNetwork === true, // 映射 isRareNetwork -> isNetworkMember
-    // 新增：映射 diseases 字段，确保是数组
-    diseases: Array.isArray(apiData.diseases) ? apiData.diseases : [],
+    id: Number(apiData.id),
+    name: String(apiData.name ?? ''),
+    level,
+    levelText: levelMap[level] || '未知等级',
+    specialty: String(apiData.treatScope ?? ''),
+    address: apiData.address as string | undefined,
+    phone: apiData.phone as string | undefined,
+    isNetworkMember: apiData.isRareNetwork === true,
+    diseases: Array.isArray(apiData.diseases) ? (apiData.diseases as DiseaseBrief[]) : [],
     // 接口暂无以下字段，设默认值
     rating: 0,
     reviewCount: 0,
@@ -157,7 +131,7 @@ const transformHospitalData = (apiData: any): HospitalDetail => {
 const loadDetail = async (id: number) => {
   loading.value = true
   try {
-    const res = await request.get(`/api/resource/medical/hospitals/${id}`)
+    const res = await medicalApi.getHospital(id)
     if (res.data) {
       // 【关键修改】使用转换函数处理数据
       detail.value = transformHospitalData(res.data)

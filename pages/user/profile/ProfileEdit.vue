@@ -66,6 +66,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { UploadFileItem, UploadAfterReadEvent } from '@/types/ui'
 
 // 默认头像
 const defaultAvatar = 'https://via.placeholder.com/150'
@@ -78,13 +79,13 @@ const userInfo = ref({
 
 // 头像上传弹窗状态
 const showAvatarPopup = ref(false)
-const avatarFileList = ref<any[]>([])
+const avatarFileList = ref<UploadFileItem[]>([])
 
 // 保存状态
 const saving = ref(false)
 
 // 处理头像上传 (选择文件后触发)
-const handleAvatarUpload = (event: any) => {
+const handleAvatarUpload = (event: UploadAfterReadEvent) => {
   // event.file 包含选中的文件信息
   // 这里可以执行压缩、上传到 OSS 等操作
   console.log('选择文件:', event.file)

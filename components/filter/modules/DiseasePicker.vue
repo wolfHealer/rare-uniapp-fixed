@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import request from '@/utils/request'
+import { knowledgeApi } from '@/api/knowledge'
 
 // 定义疾病选项接口
 export interface DiseaseOption {
@@ -85,7 +85,7 @@ const emit = defineEmits<{
 const keyword = ref(props.modelValue?.diseaseName || '')
 const options = ref<DiseaseOption[]>([])
 const loading = ref(false)
-const timer = ref<any>(null)
+const timer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 // 当输入框有内容时显示结果区域
 const showResult = computed(() => keyword.value.trim().length > 0)
@@ -118,7 +118,7 @@ const fetchDiseaseList = async () => {
   loading.value = true
   try {
     // 调用指定接口
-    const res = await request.get('/api/knowledge/diseases/search', {
+    const res = await knowledgeApi.searchDiseases({
         keyword: q
     })
 

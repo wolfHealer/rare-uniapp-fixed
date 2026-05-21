@@ -89,25 +89,22 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { rehabApi } from '@/api/rehab'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type { RehabGuideItem, RehabGuideFilterParams } from '@/types/rehab'
+import type { RehabListQuery } from '@/types/rehab'
+import type { SelectOption } from '@/types/ui'
+import { downloadAndOpenDocument } from '@/utils/download'
 
-// --- 1. 状态管理 ---
 const keyword = ref('')
-const list = ref<any[]>([])
-const loading = ref(false)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-const currentPage = ref(1)
-const pageSize = ref(10)
-
-// 筛选参数状态
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<RehabGuideFilterParams>({
   disease: {},   
   stage: ''      
 })
 
-const stageOptions = ref<{ label: string; value: any }[]>([
+const stageOptions = ref<SelectOption<string>[]>([
   { label: '全部阶段', value: '' },
   { label: '早期', value: 'early' },
   { label: '中期', value: 'middle' }, // 注意：接口示例中未出现 middle，但保留以防万一
@@ -144,131 +141,53 @@ const getStageLabel = (stage: string) => {
   return stageLabels[stage] || stage || '未知阶段'
 }
 
-// --- 4. 数据加载逻辑 ---
-const fetchTrainings = async (isRefresh = false) => {
-  if (isRefresh) {
-    currentPage.value = 1
-    list.value = []
-    loadStatus.value = 'loading'
+const buildQueryParams = (page: number, pageSize: number): RehabListQuery => {
+  const params: RehabListQuery = { page, pageSize }
+  if (keyword.value) params.keyword = keyword.value
+  const diseaseVal = filterParams.value.disease || {}
+  if (diseaseVal.diseaseId) params.diseaseId = diseaseVal.diseaseId
+  if (filterParams.value.stage) params.rehabStage = filterParams.value.stage
+  return params
+}
+
+const { list, loading, loadStatus, refresh, onLoadMore } = usePagedList<RehabGuideItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await rehabApi.listGuides(buildQueryParams(page, pageSize))
+    const records = res.data?.list || []
+    return { list: records, hasMore: records.length >= pageSize }
   }
-  
-  if (loadStatus.value === 'nomore' && !isRefresh) return
+})
 
-  loading.value = true
-  
-  try {
-    const params: Record<string, any> = {
-      page: currentPage.value,
-      pageSize: pageSize.value
-    }
-
-    if (keyword.value) {
-      params.keyword = keyword.value
-    }
-
-    const diseaseVal = filterParams.value.disease || {}
-    if (diseaseVal.diseaseId) {
-      params.diseaseId = diseaseVal.diseaseId
-    }
-    
-    if (filterParams.value.stage) {
-      params.rehabStage = filterParams.value.stage // 注意：后端参数名可能是 rehabStage
-    }
-
-    const res = await request.get('/api/resource/rehab/trainings', params)
-    const responseData = res.data || {}
-    const records = responseData.list || []
-    
-    list.value.push(...records)
-    
-    if (records.length < pageSize.value) {
-      loadStatus.value = 'nomore'
-    } else {
-      loadStatus.value = 'loadmore'
-      currentPage.value++
-    }
-  } catch (error) {
-    console.error('获取列表失败:', error)
-    uni.showToast({ title: '加载失败', icon: 'none' })
-    loadStatus.value = 'loadmore'
-  } finally {
-    loading.value = false
-  }
-}
-
-// --- 5. 事件处理 ---
-const onLoadMore = () => {
-  if (!loading.value) fetchTrainings()
-}
-
-const handleSearch = () => {
-  fetchTrainings(true)
-}
-
+const onLoadMoreHandler = () => onLoadMore()
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  fetchTrainings(true)
+  refresh()
 }
-
-const handleFilterChange = () => {
-  fetchTrainings(true)
-}
-
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    disease: {},
-    stage: ''
-  }
-  fetchTrainings(true)
+  filterParams.value = { disease: {}, stage: '' }
+  refresh()
 }
 
-const viewDetails = (item: any) => {
+const viewDetails = (item: RehabGuideItem) => {
   if (!item?.id) return
   uni.navigateTo({
     url: `/pages/resource/rehab/RehabGuideDetail?id=${item.id}`
   })
 }
 
-const downloadGuide = async (item: any) => {
+const downloadGuide = async (item: RehabGuideItem) => {
   if (!item.guidePdf) {
     uni.showToast({ title: '暂无PDF文件', icon: 'none' })
     return
   }
 
-  uni.showLoading({ title: '下载中...' })
-  
-  let pdfUrl = item.guidePdf
-  if (!pdfUrl.startsWith('http')) {
-     const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-     pdfUrl = BASE_URL + pdfUrl
-  }
-
-  uni.downloadFile({
-    url: pdfUrl,
-    success: (res) => {
-      uni.hideLoading()
-      if (res.statusCode === 200) {
-        uni.openDocument({
-          filePath: res.tempFilePath,
-          fileType: 'pdf',
-          showMenu: true,
-          success: () => {},
-          fail: () => uni.showToast({ title: '打开失败', icon: 'none' })
-        })
-      } else {
-        uni.showToast({ title: '下载失败', icon: 'none' })
-      }
-    },
-    fail: () => {
-      uni.hideLoading()
-      uni.showToast({ title: '网络错误', icon: 'none' })
-    }
-  })
+  downloadAndOpenDocument({ url: String(item.guidePdf) })
 }
 
-onMounted(() => {
-  fetchTrainings()
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped>

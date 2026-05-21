@@ -131,33 +131,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { drugApi } from '@/api/drug'
+import type { DrugChannelDetailData } from '@/types/drug'
 
-// 修改点: 更新接口定义以匹配后端
-interface DrugInfo {
-  id: number
-  genericName: string
-  brandName: string
-}
-
-interface ChannelDetail {
-  id: number
-  name: string
-  channelType: string
-  provinceName: string
-  cityName: string
-  districtName: string
-  address: string
-  contactPhone: string
-  contactUrl: string
-  deliveryScope: string
-  desc: string
-  drugs: DrugInfo[]
-  qualification: string
-  auditStatus: number
-}
-
-const detail = ref<ChannelDetail | null>(null)
+const detail = ref<DrugChannelDetailData | null>(null)
 const loading = ref<boolean>(false)
 const channelId = ref<number | null>(null)
 
@@ -184,7 +161,7 @@ const loadDetail = async () => {
   
   loading.value = true
   try {
-    const res = await request.get(`/api/resource/drug/channels/${channelId.value}`)
+    const res = await drugApi.getChannel(channelId.value)
     detail.value = res.data || null
   } catch (error) {
     console.error('加载渠道详情失败:', error)

@@ -133,32 +133,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { charityApi } from '@/api/charity'
+import { downloadAndOpenDocument } from '@/utils/download'
+import type { AidProjectDetailData } from '@/types/charity'
 
-// 修改点: 更新类型定义以匹配后端接口
-interface ProjectDetail {
-  id: number
-  name: string             // 原 title
-  organizer: string        // 原 org (如果有)
-  applyCondition: string   // 原 requirements
-  reliefStandard: string   // 新增，用于展示主要内容
-  reliefType: string       // 新增
-  applyDifficulty: string  // 新增
-  status: string
-  diseaseIds: number[]
-  auditStatus: number
-  rejectReason: string
-  sort: number
-  updatedAt: string        // 原 deadline (如果没有则用这个)
-  // 以下字段接口暂未返回，保留以防后续扩展
-  applyForm?: string
-  applyGuide?: string
-  materialList?: string
-  contact?: string
-}
-
-// 响应式数据
-const detail = ref<ProjectDetail | null>(null)
+const detail = ref<AidProjectDetailData | null>(null)
 const loading = ref<boolean>(false)
 const projectId = ref<number | string>('')
 
@@ -219,7 +198,7 @@ const loadDetail = async () => {
   loading.value = true
   try {
     // 假设后端详情接口也是 /api/resource/charity/projects/{id}
-    const res = await request.get(`/api/resource/charity/projects/${projectId.value}`)
+    const res = await charityApi.getProject(projectId.value)
     // 后端返回结构 { code: 200, data: {...} }
     // 注意：如果后端详情接口返回的是单个对象而不是 { data: object }，则需要调整为 res.data
     // 根据列表接口推测，详情接口通常也是包裹在 data 中，或者是直接返回对象。
@@ -242,7 +221,7 @@ const handleApply = async () => {
   if (!detail.value?.id) return
   
   try {
-    const res = await request.post('/api/resource/charity/apply', {
+    const res = await charityApi.applyProject({
       projectId: detail.value.id
     })
     if (res.code === 200) {
@@ -257,49 +236,12 @@ const handleApply = async () => {
   }
 }
 
-// 下载文件 (保持原逻辑，但因接口无字段，暂不会被触发)
-const downloadFile = async (url: string, fileName: string) => {
-  uni.showLoading({ title: '下载中...' })
-  
-  try {
-    let downloadUrl = url
-    if (!url.startsWith('http')) {
-       const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://your-api-domain.com'
-       downloadUrl = BASE_URL.replace(/\/+$/, '') + url 
-    }
-
-    uni.downloadFile({
-      url: downloadUrl,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          uni.openDocument({
-            filePath: res.tempFilePath,
-            showMenu: true,
-            success: () => {
-              uni.hideLoading()
-              uni.showToast({ title: `${fileName}已打开`, icon: 'success' })
-            },
-            fail: () => {
-               uni.hideLoading()
-               uni.showToast({ title: '打开文件失败', icon: 'none' })
-            }
-          })
-        } else {
-          uni.hideLoading()
-          uni.showToast({ title: '下载失败', icon: 'none' })
-        }
-      },
-      fail: (err) => {
-        uni.hideLoading()
-        console.error('下载失败:', err)
-        uni.showToast({ title: '下载失败，请检查网络', icon: 'none' })
-      }
-    })
-  } catch (error) {
-    uni.hideLoading()
-    console.error('下载异常:', error)
-    uni.showToast({ title: '下载异常', icon: 'none' })
+const downloadFile = (url: string, _fileName?: string) => {
+  if (!url) {
+    uni.showToast({ title: '链接无效', icon: 'none' })
+    return
   }
+  downloadAndOpenDocument({ url: String(url) })
 }
 
 // 返回上一页

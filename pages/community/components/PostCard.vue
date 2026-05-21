@@ -36,8 +36,8 @@
       
       <view class="action-item" @click="handleCollect">
         <!-- 假设后端有 is_collected 字段 -->
-        <u-icon :name="post.is_collected ? 'star-fill' : 'star'" :color="post.is_collected ? '#ff9900' : '#909399'" size="18"></u-icon>
-        <text class="action-text">{{ post.collect_count || 0 }}</text>
+        <u-icon :name="post.is_favorited ? 'star-fill' : 'star'" :color="post.is_favorited ? '#ff9900' : '#909399'" size="18"></u-icon>
+        <text class="action-text">{{ post.favorite_count || 0 }}</text>
       </view>
 
       <view class="action-item" @click="goToDetail">
@@ -50,10 +50,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import request from '@/utils/request'
+import { communityApi } from '@/api/community'
+import type { CommunityPost } from '@/types/community'
 
 const props = defineProps<{
-  post: any
+  post: CommunityPost
 }>()
 
 const emit = defineEmits(['refresh']) // 通知父组件刷新列表状态
@@ -85,7 +86,7 @@ const handleLike = async () => {
     props.post.is_liked = !props.post.is_liked
     props.post.like_count += props.post.is_liked ? 1 : -1
 
-    await request.post(`/api/community/posts/${props.post.id}/like`)
+    await communityApi.likePost(props.post.id)
   } catch (error) {
     // 失败回滚
     props.post.is_liked = !props.post.is_liked
@@ -98,16 +99,16 @@ const handleLike = async () => {
 const handleCollect = async () => {
   try {
     const originalState = { 
-      collected: props.post.is_collected, 
-      count: props.post.collect_count 
+      favorited: props.post.is_favorited, 
+      count: props.post.favorite_count 
     }
-    props.post.is_collected = !props.post.is_collected
-    props.post.collect_count += props.post.is_collected ? 1 : -1
+    props.post.is_favorited = !props.post.is_favorited
+    props.post.favorite_count += props.post.is_favorited ? 1 : -1
 
-    await request.post(`/api/community/posts/${props.post.id}/collect`)
+    await communityApi.collectPost(props.post.id)
   } catch (error) {
-    props.post.is_collected = !props.post.is_collected
-    props.post.collect_count = originalState.count
+    props.post.is_favorited = !props.post.is_favorited
+    props.post.favorite_count = originalState.count
     uni.showToast({ title: '操作失败', icon: 'none' })
   }
 }

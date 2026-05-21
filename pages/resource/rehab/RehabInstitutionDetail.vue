@@ -178,48 +178,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { rehabApi } from '@/api/rehab'
+import type { RehabInstitutionDetailData } from '@/types/rehab'
 
-// 类型定义更新
-interface Doctor {
-  name: string
-  title: string
-  specialty: string
-}
-
-interface Disease {
-  id: number
-  name: string
-  alias: string
-}
-
-interface InstitutionDetail {
-  id: number
-  name: string
-  typeName: string
-  provinceName: string
-  cityName: string
-  districtName: string
-  address: string
-  contactPhone: string
-  contactUrl: string
-  qualification?: string
-  rehabProjects: string
-  feeStandard: string
-  diseases: Disease[]
-  auditStatus: number
-  rating: number
-  status: string
-  coverUrl?: string
-  images?: string[]
-  businessHours?: string
-  facilities?: string[]
-  doctors: Doctor[]
-  isInsurance: boolean
-}
-
-// 响应式数据
-const detail = ref<InstitutionDetail | null>(null)
+const detail = ref<RehabInstitutionDetailData | null>(null)
 const loading = ref<boolean>(false)
 const institutionId = ref<number | null>(null)
 
@@ -234,7 +196,7 @@ const getFullRegion = () => {
 const loadDetail = async (id: number) => {
   loading.value = true
   try {
-    const res = await request.get(`/api/resource/rehab/institutions/${id}`)
+    const res = await rehabApi.getInstitution(id)
     detail.value = res.data || null
   } catch (error) {
     console.error('加载机构详情失败:', error)

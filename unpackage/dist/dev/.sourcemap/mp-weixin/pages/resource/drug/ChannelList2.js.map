@@ -1,1 +1,0 @@
-{"version":3,"file":"ChannelList2.js","sources":["/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/drug/ChannelList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/drug/ChannelList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,YAAe,eAAA;"}

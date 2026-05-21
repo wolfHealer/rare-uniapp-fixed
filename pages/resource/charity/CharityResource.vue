@@ -45,6 +45,7 @@ import AidProjectList from './AidProjectList.vue'
 import CaseShare from './CaseShareList.vue'
 import HelpChannel from './HelpChannelList.vue'
 import BottomNav from '@/components/BottomNav.vue'
+import type { TabChangeEvent } from '@/types/ui'
 
 const activeTab = ref(0)
 
@@ -55,8 +56,7 @@ const tabList = ref([
   { name: '求助通道指引' }
 ])
 
-// Tab 切换事件
-const onTabChange = (item: any) => {
+const onTabChange = (item: TabChangeEvent) => {
   activeTab.value = item.index
 }
 

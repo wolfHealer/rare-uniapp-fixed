@@ -118,33 +118,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { rehabApi } from '@/api/rehab'
+import type { RehabGuideDetailData } from '@/types/rehab'
+import { downloadAndOpenDocument } from '@/utils/download'
 
-// 类型定义
-interface Disease {
-  id: number
-  name: string
-  alias: string
-}
-
-interface GuideDetail {
-  id: number
-  title: string
-  rehabStage: string
-  trainPurpose: string
-  trainContent: string
-  forbiddenAction: string
-  picUrls: string[] 
-  guidePdf: string
-  guideWord?: string // 可选
-  diseases: Disease[]
-  auditStatus: number
-  createdAt: string
-  updatedAt: string
-}
-
-// 响应式数据
-const detail = ref<GuideDetail | null>(null)
+const detail = ref<RehabGuideDetailData | null>(null)
 const loading = ref<boolean>(false)
 const downloading = ref<boolean>(false)
 const guideId = ref<number | null>(null)
@@ -166,7 +144,7 @@ const getStageLabel = (stage: string) => {
 const loadDetail = async (id: number) => {
   loading.value = true
   try {
-    const res = await request.get(`/api/resource/rehab/trainings/${id}`)
+    const res = await rehabApi.getGuide(id)
     // 确保赋值的是 data 部分
     detail.value = res.data || null
   } catch (error) {
@@ -194,46 +172,16 @@ const downloadGuide = async () => {
     uni.showToast({ title: '暂无PDF文件', icon: 'none' })
     return
   }
-  
-  downloading.value = true
-  
-  let pdfUrl = detail.value.guidePdf
-  // 处理相对路径
-  if (!pdfUrl.startsWith('http')) {
-     const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-     pdfUrl = BASE_URL + pdfUrl
-  }
 
-  uni.showLoading({ title: '加载中...' })
-  
-  uni.downloadFile({
-    url: pdfUrl,
-    success: (res) => {
-      uni.hideLoading()
-      if (res.statusCode === 200) {
-        uni.openDocument({
-          filePath: res.tempFilePath,
-          fileType: 'pdf',
-          showMenu: true,
-          success: () => {},
-          fail: (err) => {
-            console.error(err)
-            uni.showToast({ title: '打开文件失败', icon: 'none' })
-          }
-        })
-      } else {
-        uni.showToast({ title: '下载失败', icon: 'none' })
-      }
-    },
-    fail: (err) => {
-      uni.hideLoading()
-      console.error(err)
-      uni.showToast({ title: '网络请求失败', icon: 'none' })
-    },
-    complete: () => {
-      downloading.value = false
-    }
-  })
+  downloading.value = true
+  try {
+    await downloadAndOpenDocument(
+      { url: String(detail.value.guidePdf) },
+      { loadingTitle: '加载中...' }
+    )
+  } finally {
+    downloading.value = false
+  }
 }
 
 // 返回上一页

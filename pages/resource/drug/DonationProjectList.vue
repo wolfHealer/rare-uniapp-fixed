@@ -21,20 +21,18 @@
       />
     </view>
 
-    <!-- 加载状态 -->
-    <view v-if="loading" class="loading-state">
-      <u-loading-icon mode="circle"></u-loading-icon>
-      <text class="loading-text">加载中...</text>
-    </view>
+    <!-- 列表内容 -->
+    <scroll-view scroll-y class="content-scroll" @scrolltolower="onLoadMore">
+      <view v-if="loading && projects.length === 0" class="loading-state">
+        <u-loading-icon mode="circle"></u-loading-icon>
+        <text class="loading-text">加载中...</text>
+      </view>
 
-    <!-- 空状态 -->
-    <view v-else-if="projects.length === 0" class="empty-state">
-      <u-empty mode="data" text="暂无援助项目"></u-empty>
-    </view>
+      <view v-else-if="projects.length === 0" class="empty-state">
+        <u-empty mode="data" text="暂无援助项目"></u-empty>
+      </view>
 
-    <!-- 项目列表 -->
-    <scroll-view v-else scroll-y class="content-scroll">
-      <view class="project-list">
+      <view v-else class="project-list">
         <view
           v-for="project in projects"
           :key="project.id"
@@ -76,6 +74,8 @@
             <u-icon name="arrow-right" size="14" color="#9ca3af"></u-icon>
           </view>
         </view>
+
+        <u-loadmore :status="loadStatus" @loadmore="onLoadMore" />
       </view>
     </scroll-view>
   </view>
@@ -83,49 +83,49 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { drugApi } from '@/api/drug'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type { DonationProjectFilterParams, DrugListQuery, DonationProjectItem } from '@/types/drug'
 
-// 接口定义 (保持与后端返回一致)
-interface Project {
-  id: number
-  name: string
-  diseaseId: number
-  diseaseName: string
-  drugId: number
-  drugName: string
-  organizer: string
-  applyCondition: string
-  reliefCycle: string
-  reliefDosageDesc: string
-  applyForm: string
-  applyGuide: string
-  materialList: string
-  progressQuery: string
-  auditStatus: number // 1: 正常/通过, 其他: 审核中/驳回
-  updatedAt: string
+const keyword = ref('')
+const filterParams = ref<DonationProjectFilterParams>({
+  disease: {}
+})
+
+const buildQueryParams = (page: number, pageSize: number): DrugListQuery => {
+  const params: DrugListQuery = { page, pageSize }
+  if (keyword.value.trim()) params.keyword = keyword.value.trim()
+  const diseaseVal = filterParams.value.disease || {}
+  if (diseaseVal.diseaseId) params.diseaseId = diseaseVal.diseaseId
+  return params
 }
 
-// --- 1. 状态管理 ---
-const keyword = ref('') 
-const projects = ref<Project[]>([])
-const loading = ref(false)
-
-const filterParams = ref<Record<string, any>>({
-  disease: {} 
+const { list: projects, loading, loadStatus, refresh, onLoadMore } = usePagedList<DonationProjectItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await drugApi.listDonations(buildQueryParams(page, pageSize))
+    const records = res.data?.list || []
+    return { list: records, hasMore: records.length >= pageSize }
+  }
 })
+
+const viewDetail = (project: DonationProjectItem) => {
+  uni.navigateTo({
+    url: `/pages/resource/drug/DonationProjectDetail?projectId=${project.id}`
+  })
+}
 
 // --- 2. 筛选配置 ---
 const projectConfigs: FilterConfigItem[] = [
   {
     key: 'disease',
     label: '疾病',
-    type: 'disease' 
+    type: 'disease'
   }
 ]
 
-// --- 辅助函数: 格式化日期 ---
 const formatDate = (dateStr: string) => {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
@@ -133,66 +133,18 @@ const formatDate = (dateStr: string) => {
   return date.toLocaleDateString('zh-CN')
 }
 
-// --- 3. 数据加载逻辑 ---
-const fetchProjects = async () => {
-  loading.value = true
-  try {
-    const params: Record<string, any> = {}
-    
-    if (keyword.value && keyword.value.trim() !== '') {
-      params.keyword = keyword.value.trim()
-    }
-
-    const diseaseVal = filterParams.value.disease || {}
-    if (diseaseVal.diseaseId) {
-      params.diseaseId = diseaseVal.diseaseId
-    }
-
-    const res = await request.get('/api/resource/drug/donations', params)
-    
-    // 接口返回结构: res.data.list
-    projects.value = res.data?.list || []
-  } catch (error) {
-    console.error('获取援助项目列表失败:', error)
-    projects.value = []
-    uni.showToast({ title: '加载项目列表失败，请稍后再试', icon: 'none' })
-  } finally {
-    loading.value = false
-  }
-}
-
-// --- 4. 事件处理 ---
-
-// 查看詳情 (核心修改：跳转至详情页)
-const viewDetail = (project: Project) => {
-  uni.navigateTo({
-    url: `/pages/resource/drug/DonationProjectDetail?projectId=${project.id}`
-  })
-}
-
-const handleSearch = () => {
-  fetchProjects()
-}
-
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  fetchProjects()
+  refresh()
 }
-
-const handleFilterChange = () => {
-  fetchProjects()
-}
-
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    disease: {}
-  }
-  fetchProjects()
+  filterParams.value = { disease: {} }
+  refresh()
 }
 
-onMounted(() => {
-  fetchProjects()
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped>

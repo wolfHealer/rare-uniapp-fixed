@@ -135,14 +135,16 @@
 // ... script 部分保持不变，之前的 fetchDetail 逻辑已经正确将 res.data 赋值给 post.value ...
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { communityApi } from '@/api/community'
 import CommentTree from './components/CommentTree.vue'
 import { useUserStore } from '@/stores/modules/user'
+import type { CommunityPost, CommentItem, CommentReplyTarget } from '@/types/community'
+import type { QueryParams } from '@/types/common'
 
 const userStore = useUserStore()
 const postId = ref<number>(0)
-const post = ref<any>({})
-const commentList = ref<any[]>([])
+const post = ref<CommunityPost>({} as CommunityPost)
+const commentList = ref<CommentItem[]>([])
 const showCommentPopup = ref(false)
 const newComment = ref('')
 const replyTarget = ref<{ parentId: number; targetUser: string } | null>(null)
@@ -161,7 +163,7 @@ onLoad((options) => {
 const fetchDetail = async () => {
   try {
     // 假设 request.get 返回的是 { code, data, message }
-    const res = await request.get(`/api/community/posts/${postId.value}`)
+    const res = await communityApi.getPost(postId.value)
     
     // 根据你提供的返回值样式，数据在 res.data 中
     // 如果 request 拦截器已经解包了 data，则直接用 res
@@ -192,7 +194,7 @@ const fetchDetail = async () => {
 
 // ... 其余函数 (buildQueryString, fetchComments, handleLoadMoreReplies 等) 保持不变 ...
 
-const buildQueryString = (params: Record<string, any>) => {
+const buildQueryString = (params: QueryParams) => {
   const parts: string[] = []
   for (const key in params) {
     if (params[key] !== undefined && params[key] !== null) {
@@ -217,10 +219,7 @@ const fetchComments = async (isRefresh = false) => {
       reply_limit: 3
     }
     
-    const queryString = buildQueryString(params)
-    const url = `/api/community/comments/tree?${queryString}`
-
-    const res = await request.get(url)
+    const res = await communityApi.listCommentTree(params)
     const data = res.data || res // 兼容处理
     const newList = data.list || []
     
@@ -260,10 +259,7 @@ const handleLoadMoreReplies = async (data: { rootId: number }) => {
       size: 20
     }
     
-    const queryString = buildQueryString(params)
-    const url = `/api/community/comments/replies?${queryString}`
-
-    const res = await request.get(url)
+    const res = await communityApi.listCommentReplies(params)
     const replyData = res.data || res
     const newReplies = replyData.list || []
 
@@ -293,7 +289,7 @@ const handleLoadMoreReplies = async (data: { rootId: number }) => {
 
 const toggleLike = async () => {
   try {
-    await request.post(`/api/community/posts/${postId.value}/like`)
+    await communityApi.likePost(postId.value)
     post.value.is_liked = !post.value.is_liked
     post.value.like_count += post.value.is_liked ? 1 : -1
   } catch (e) {
@@ -307,7 +303,7 @@ const toggleCollect = async () => {
     // 这里假设后端路径是 /collect 或者 /favorite，根据 PostCard.vue 之前用的是 collect
     // 但接口返回的是 is_favorited 和 favorite_count
     // 假设后端接口路径为 /api/community/posts/{id}/favorite
-    await request.post(`/api/community/posts/${postId.value}/favorite`)
+    await communityApi.favoritePost(postId.value)
     post.value.is_favorited = !post.value.is_favorited
     post.value.favorite_count += post.value.is_favorited ? 1 : -1
   } catch (e) {
@@ -315,7 +311,7 @@ const toggleCollect = async () => {
   }
 }
 
-const handleSetReplyTarget = (target: any) => {
+const handleSetReplyTarget = (target: CommentReplyTarget) => {
   replyTarget.value = target
   showCommentPopup.value = true
 }
@@ -337,7 +333,7 @@ const submitComment = async () => {
   }
 
   try {
-    await request.post(`/api/community/posts/${postId.value}/comments`, {
+    await communityApi.createComment(postId.value, {
       content: newComment.value,
       parent_id: replyTarget.value ? replyTarget.value.parentId : 0,
       user_id: userId

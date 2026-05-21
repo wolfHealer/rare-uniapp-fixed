@@ -48,14 +48,18 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { onPullDownRefresh } from '@dcloudio/uni-app'
 import PostList from './components/PostList.vue'
-import request from '@/utils/request'
-import { useUserStore } from '../../stores/modules/user'
+import { useUserStore } from '@/stores/modules/user'
 // 引入智能筛选组件
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type {
+  CommunityFilterParams,
+  PostCommentEmitPayload,
+  PostListExpose
+} from '@/types/community'
 
 const userStore = useUserStore()
-const postListRef = ref<any>(null)
+const postListRef = ref<PostListExpose | null>(null)
 const refreshing = ref(false)
 
 // --- 原有业务状态 ---
@@ -65,7 +69,7 @@ const type = ref<string>('all')
 const sort = ref<string>('latest')
 
 // --- 智能筛选状态 ---
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<CommunityFilterParams>({
   disease: {},      
   postType: 'all',  
   sortOrder: 'latest' 
@@ -139,7 +143,7 @@ const handleFilterReset = () => {
   // 空实现，逻辑已在 watch 中处理
 }
 
-const handleComment = async (data: { post: any; newComment?: any; comments?: any[] }) => {
+const handleComment = async (data: PostCommentEmitPayload) => {
   console.log('接收到评论事件:', data)
   if (data.newComment) {
     uni.showToast({
@@ -164,16 +168,14 @@ onPullDownRefresh(() => {
 })
 
 const goToPost = () => {
-  if (!userStore.token) {
+  if (!userStore.isLoggedIn()) {
     uni.showToast({ title: '请先登录', icon: 'none' })
     setTimeout(() => {
       uni.navigateTo({ url: '/pages/user/login/Login' })
     }, 1500)
     return
   }
-  uni.navigateTo({
-    url: '/pages/community/PostEdit'
-  })
+  uni.navigateTo({ url: '/pages/community/PostEdit' })
 }
 
 onMounted(() => {

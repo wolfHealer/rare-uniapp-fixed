@@ -1,1 +1,0 @@
-{"version":3,"file":"ExaminationsList.js","sources":["pages/resource/medical/ExaminationsList.vue?type=page"],"sourcesContent":["import MiniProgramPage from '/Users/zhonghua/Downloads/rare-uniapp-fixed/pages/resource/medical/ExaminationsList.vue'\nwx.createPage(MiniProgramPage)"],"names":["MiniProgramPage"],"mappings":";;AACA,GAAG,WAAWA,iBAAe,eAAA;"}

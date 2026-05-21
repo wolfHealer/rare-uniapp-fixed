@@ -97,37 +97,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { drugApi } from '@/api/drug'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type { DrugListItem, DrugFilterParams, DrugOptionItem } from '@/types/drug'
+import type { DrugListQuery } from '@/types/drug'
+import { downloadAndOpenDocument, downloadAndSaveFile } from '@/utils/download'
 
-// --- 1. 类型定义 ---
-interface DrugItem {
-  id: number
-  generic_name: string
-  brand_name?: string
-  indication: string
-  drug_type: string
-  is_insurance: boolean
-  dosage_form?: string
-  spec?: string
-  ref_price?: string
-  has_relief?: boolean
-  is_launched?: boolean
-  need_prescription?: boolean
-  manual_original?: string
-  manual_popular?: string
-}
-
-// --- 2. 状态管理 ---
 const keyword = ref('')
-const drugs = ref<DrugItem[]>([])
-const loading = ref(false)
 const exporting = ref(false)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('nomore')
-
-// 筛选参数状态
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<DrugFilterParams>({
   drug_type: '',
   is_insurance: ''
 })
@@ -178,13 +158,13 @@ const drugConfigs: FilterConfigItem[] = [
 
 const fetchOptions = async () => {
   try {
-    const res = await request.get('/api/resource/drug/drugs/options')
+    const res = await drugApi.getDrugOptions()
     const data = res.data || {}
     
     if (data.types && Array.isArray(data.types)) {
       typeOptions.value = [
         { label: '全部类型', value: '' },
-        ...data.types.map((item: any) => ({
+        ...data.types.map((item: DrugOptionItem) => ({
           label: item.label,
           value: item.value
         }))
@@ -194,7 +174,7 @@ const fetchOptions = async () => {
     if (data.insurances && Array.isArray(data.insurances)) {
       insuranceOptions.value = [
         { label: '全部状态', value: '' },
-        ...data.insurances.map((item: any) => ({
+        ...data.insurances.map((item: DrugOptionItem) => ({
           label: item.label,
           value: item.value
         }))
@@ -205,79 +185,42 @@ const fetchOptions = async () => {
   }
 }
 
-const fetchDrugs = async () => {
-  loading.value = true
-  try {
-    const params: Record<string, any> = {}
-    
-    if (keyword.value && keyword.value.trim() !== '') {
-      params.keyword = keyword.value
-    }
-    
-    // 映射筛选参数到接口期望的参数名
-    if (filterParams.value.drug_type) {
-      params.drug_type = filterParams.value.drug_type
-    }
-    
-    if (filterParams.value.is_insurance) {
-      params.is_insurance = filterParams.value.is_insurance
-    }
+const buildQueryParams = (page: number, pageSize: number): DrugListQuery => {
+  const params: DrugListQuery = { page, pageSize }
+  if (keyword.value.trim()) params.keyword = keyword.value.trim()
+  if (filterParams.value.drug_type) params.drug_type = filterParams.value.drug_type
+  if (filterParams.value.is_insurance) params.is_insurance = filterParams.value.is_insurance
+  return params
+}
 
-    const res = await request.get('/api/resource/drug/drugs', { params })
-    
-    // 处理返回数据结构: { code: 200, data: { list: [], total: 4 ... } }
-    let resultList: DrugItem[] = []
-    if (res.data && res.data.list) {
-        resultList = res.data.list
-    } else if (Array.isArray(res.data)) {
-        resultList = res.data
-    }
-    
-    drugs.value = resultList
-    loadStatus.value = 'nomore' // 当前未实现分页加载，暂定为 nomore
-  } catch (error) {
-    console.error('获取药品列表失败:', error)
-    uni.showToast({ title: '加载失败', icon: 'none' })
-    drugs.value = []
-  } finally {
-    loading.value = false
+const { list: drugs, loading, loadStatus, refresh, onLoadMore } = usePagedList<DrugListItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await drugApi.listDrugs(buildQueryParams(page, pageSize))
+    const records = res.data?.list || (Array.isArray(res.data) ? res.data : [])
+    return { list: records, hasMore: records.length >= pageSize }
   }
-}
+})
 
-// --- 6. 事件处理 ---
-
-const onSearch = () => {
-  fetchDrugs()
-}
-
+const onSearch = () => refresh()
 const onClear = () => {
   keyword.value = ''
-  fetchDrugs()
+  refresh()
 }
-
-const loadMore = () => {
-  // 预留分页接口
-}
-
-const handleFilterChange = () => {
-  fetchDrugs()
-}
-
+const loadMore = () => onLoadMore()
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    drug_type: '',
-    is_insurance: ''
-  }
-  fetchDrugs()
+  filterParams.value = { drug_type: '', is_insurance: '' }
+  refresh()
 }
 
-const viewDetails = (drug: DrugItem) => {
+const viewDetails = (drug: DrugListItem) => {
   uni.navigateTo({
     url: `/pages/resource/drug/DrugDetail?id=${drug.id}`
   })
 }
 
-const downloadManual = async (drug: DrugItem) => {
+const downloadManual = async (drug: DrugListItem) => {
   const url = drug.manual_popular || drug.manual_original
   if (!url) {
     uni.showToast({ title: '暂无说明书', icon: 'none' })
@@ -287,40 +230,22 @@ const downloadManual = async (drug: DrugItem) => {
   // #ifdef H5
   window.open(url, '_blank')
   // #endif
-  
+
   // #ifndef H5
-  uni.downloadFile({
-    url: url,
-    success: (res) => {
-      if (res.statusCode === 200) {
-        uni.openDocument({
-          filePath: res.tempFilePath,
-          showMenu: true,
-          fail: (err) => {
-             console.error(err)
-             uni.showToast({ title: '打开失败', icon: 'none' })
-          }
-        })
-      }
-    },
-    fail: (err) => {
-      console.error(err)
-      uni.showToast({ title: '下载失败', icon: 'none' })
-    }
-  })
+  downloadAndOpenDocument({ url: String(url) })
   // #endif
 }
 
 const downloadList = async () => {
   exporting.value = true
   try {
-    const params: Record<string, any> = {}
+    const params: DrugListQuery = {}
     if (keyword.value) params.keyword = keyword.value
     if (filterParams.value.drug_type) params.drug_type = filterParams.value.drug_type
     if (filterParams.value.is_insurance) params.is_insurance = filterParams.value.is_insurance
 
     // #ifdef H5
-    const res = await request.get('/api/resource/drug/drugs/export', {
+    const res = await drugApi.exportDrugs({
       params,
       responseType: 'blob'
     })
@@ -337,7 +262,7 @@ const downloadList = async () => {
     // #endif
 
     // #ifndef H5
-    uni.showToast({ title: '请在H5端导出Excel', icon: 'none' })
+    await downloadAndSaveFile('/api/resource/drug/drugs/export', params)
     // #endif
   } catch (error) {
     console.error('导出名录失败:', error)
@@ -349,7 +274,7 @@ const downloadList = async () => {
 
 onMounted(() => {
   fetchOptions()
-  fetchDrugs()
+  refresh()
 })
 </script>
 

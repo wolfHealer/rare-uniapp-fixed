@@ -77,145 +77,62 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { charityApi } from '@/api/charity'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
+import { downloadAndOpenDocument } from '@/utils/download'
 import type { FilterConfigItem } from '@/types/filter'
+import type { CaseShareItem } from '@/types/charity'
+import type { DiseaseFilterValue } from '@/types/common'
 
-// 分页
-const currentPage = ref(1)
-const pageSize = ref(10)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-
-// 列表数据
-const list = ref<any[]>([])
-const loading = ref(false)
-
-// 搜索关键词
 const keyword = ref('')
+const filterParams = ref<{ disease: DiseaseFilterValue }>({ disease: {} })
 
-// 筛选参数状态
-const filterParams = ref<Record<string, any>>({
-  disease: {} 
-})
-
-// 筛选配置
 const caseConfigs: FilterConfigItem[] = [
-  {
-    key: 'disease',
-    label: '疾病',
-    type: 'disease'
-  }
+  { key: 'disease', label: '疾病', type: 'disease' }
 ]
 
-const fetchCases = async (isRefresh = false) => {
-  if (isRefresh) {
-    currentPage.value = 1
-    list.value = []
-  }
-  
-  if (loadStatus.value === 'nomore' && !isRefresh) return
+const buildQueryParams = (page: number, pageSize: number) => {
+  const params: Record<string, unknown> = { page, pageSize }
+  if (keyword.value.trim()) params.keyword = keyword.value.trim()
+  const diseaseVal = filterParams.value.disease || {}
+  if (diseaseVal.diseaseId) params.diseaseId = diseaseVal.diseaseId
+  return params
+}
 
-  loading.value = true
-  if (isRefresh) {
-    loadStatus.value = 'loading'
-  }
-  
-  try {
-    const params: Record<string, any> = {
-      page: currentPage.value,
-      pageSize: pageSize.value // 注意：接口参数通常是 pageSize 或 limit，根据之前 AidProject 接口推测是 pageSize
-    }
-
-    if (keyword.value && keyword.value.trim() !== '') {
-      params.keyword = keyword.value.trim()
-    }
-
-    const diseaseVal = filterParams.value.disease || {}
-    if (diseaseVal.diseaseId) {
-      params.diseaseId = diseaseVal.diseaseId
-    }
-
-    const res = await request.get('/api/resource/charity/cases', params)
-    
-    // 接口返回结构: res.data.list
+const { list, loading, loadStatus, refresh, onLoadMore } = usePagedList<CaseShareItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await charityApi.listCases(buildQueryParams(page, pageSize))
     const records = res.data?.list || []
-    list.value.push(...records)
-    
-    if (records.length < pageSize.value) {
-      loadStatus.value = 'nomore'
-    } else {
-      loadStatus.value = 'loadmore'
-      currentPage.value++
-    }
-  } catch (error) {
-    console.error('获取案例失败:', error)
-    loadStatus.value = 'loadmore'
-    uni.showToast({ title: '加载失败', icon: 'none' })
-  } finally {
-    loading.value = false
+    return { list: records, hasMore: records.length >= pageSize }
   }
-}
+})
 
-const onLoadMore = () => {
-  fetchCases()
-}
-
-const handleSearch = () => {
-  fetchCases(true)
-}
-
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  fetchCases(true)
+  refresh()
 }
-
-const handleFilterChange = () => {
-  fetchCases(true)
-}
-
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    disease: {}
-  }
-  fetchCases(true)
+  filterParams.value = { disease: {} }
+  refresh()
 }
 
-const viewCase = (item: any) => {
-  uni.navigateTo({
-    url: `/pages/resource/charity/CaseShareDetail?id=${item.id}`
-  })
+const viewCase = (item: CaseShareItem) => {
+  uni.navigateTo({ url: `/pages/resource/charity/CaseShareDetail?id=${item.id}` })
 }
 
-const downloadCase = (item: any) => {
-  // 修改点: casePdf 替代 pdfUrl
-  if (item.casePdf) {
-    uni.showLoading({ title: '下载中...' })
-    uni.downloadFile({
-      url: item.casePdf,
-      success: (res) => {
-        uni.hideLoading()
-        if (res.statusCode === 200) {
-          uni.openDocument({
-            filePath: res.tempFilePath,
-            showMenu: true
-          })
-        } else {
-          uni.showToast({ title: '下载失败', icon: 'none' })
-        }
-      },
-      fail: () => {
-        uni.hideLoading()
-        uni.showToast({ title: '下载失败', icon: 'none' })
-      }
-    })
-  } else {
+const downloadCase = (item: CaseShareItem) => {
+  if (!item.casePdf) {
     uni.showToast({ title: '暂无PDF文件', icon: 'none' })
+    return
   }
+  downloadAndOpenDocument({ url: String(item.casePdf) })
 }
 
-onMounted(() => {
-  fetchCases(true)
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

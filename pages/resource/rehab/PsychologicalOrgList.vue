@@ -97,41 +97,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
-// 引入智能筛选组件
+import { rehabApi } from '@/api/rehab'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type {
+  PsychologicalOrgItem,
+  PsychologicalOrgFilterParams,
+  RehabListQuery
+} from '@/types/rehab'
 
-// --- 类型定义 ---
-interface OrganizationItem {
-  id: number
-  name: string
-  type: string
-  typeName: string
-  region: string // 可能是 Code
-  regionName?: string // 可能是名称
-  address: string
-  contact: string
-  phone: string
-  isFree: boolean
-  serviceTime: string
-  description: string
-  rating: number
-  status: string
-  consultWay?: string // 假设后端有咨询方式字段
-  [key: string]: any
-}
-
-// --- 响应式数据 ---
 const keyword = ref('')
-const organizations = ref<OrganizationItem[]>([])
-const loading = ref(false)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-const page = ref(1)
-const pageSize = ref(10)
-
-// 筛选参数状态
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<PsychologicalOrgFilterParams>({
   region: {},      // 地区对象 { provinceCode, ... }
   isFree: '',      // 是否免费: ''(全部), 'true', 'false'
   consultWay: '' // 咨询方式: ''(全部), 'online', 'offline', 'phone'
@@ -167,101 +144,47 @@ const orgConfigs: FilterConfigItem[] = [
   }
 ]
 
-// --- 业务逻辑 ---
-
-const fetchOrganizations = async (isRefresh = false) => {
-  if (isRefresh) {
-    page.value = 1
-    organizations.value = []
-    loadStatus.value = 'loading'
-  }
-  
-  if (loadStatus.value === 'nomore' && !isRefresh) return
-
-  loading.value = true
-  try {
-    const params: any = { 
-      page: page.value, 
-      pageSize: pageSize.value 
-    }
-    
-    // 1. 关键词
-    if (keyword.value) params.keyword = keyword.value
-
-    // 2. 地区映射
-    // 处理地区筛选
-    const regionData = filterParams.value.region || {}
-    if (regionData.provinceCode) params.provinceCode = regionData.provinceCode
-    if (regionData.cityCode) params.cityCode = regionData.cityCode
-    if (regionData.districtCode) params.districtCode = regionData.districtCode
-    
-    
-    // 3. 是否免费映射
-    if (filterParams.value.isFree) {
-      params.isFree = filterParams.value.isFree
-    }
-
-    // 4. 咨询方式映射
-    if (filterParams.value.consultWay) {
-      params.consultWay = filterParams.value.consultWay
-    }
-
-    const res = await request.get('/api/resource/rehab/psychological/orgs', params)
-    
- const responseData = res.data || {}
-    const list = responseData.list || []
-    
-    organizations.value.push(...list)
-    
-    // 判断是否还有更多数据
-    if (list.length < pageSize.value) {
-      loadStatus.value = 'nomore'
-    } else {
-      loadStatus.value = 'loadmore'
-      page.value++
-    }
-  } catch (error) {
-    console.error('获取机构列表失败:', error)
-    loadStatus.value = 'loadmore'
-    uni.showToast({ title: '加载失败', icon: 'none' })
-  } finally {
-    loading.value = false
-  }
+const buildQueryParams = (page: number, pageSize: number): RehabListQuery => {
+  const params: RehabListQuery = { page, pageSize }
+  if (keyword.value) params.keyword = keyword.value
+  const regionData = filterParams.value.region || {}
+  if (regionData.provinceCode) params.provinceCode = regionData.provinceCode
+  if (regionData.cityCode) params.cityCode = regionData.cityCode
+  if (regionData.districtCode) params.districtCode = regionData.districtCode
+  if (filterParams.value.isFree) params.isFree = filterParams.value.isFree
+  if (filterParams.value.consultWay) params.consultWay = filterParams.value.consultWay
+  return params
 }
 
-// 事件处理
-const loadMore = () => fetchOrganizations()
+const { list: organizations, loading, loadStatus, refresh, onLoadMore } = usePagedList<PsychologicalOrgItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await rehabApi.listPsychologicalOrgs(buildQueryParams(page, pageSize))
+    const records = res.data?.list || []
+    return { list: records, hasMore: records.length >= pageSize }
+  }
+})
 
-const handleSearch = () => fetchOrganizations(true)
-
+const loadMore = () => onLoadMore()
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  fetchOrganizations(true)
+  refresh()
 }
-
-// 当 SmartFilterBar 触发 change 事件
-const handleFilterChange = () => {
-  fetchOrganizations(true)
-}
-
-// 当 SmartFilterBar 触发 reset 事件
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    region: {},
-    isFree: '',
-    consultWay: ''
-  }
-  fetchOrganizations(true)
+  filterParams.value = { region: {}, isFree: '', consultWay: '' }
+  refresh()
 }
 
-const openDetail = (item: OrganizationItem) => {
+const openDetail = (item: PsychologicalOrgItem) => {
   if (!item?.id) return
   uni.navigateTo({
     url: `/pages/resource/rehab/PsychologicalOrgDetail?id=${item.id}`
   })
 }
 
-const contactOrg = (item: OrganizationItem) => {
+const contactOrg = (item: PsychologicalOrgItem) => {
   if (item.phone) {
     uni.makePhoneCall({ phoneNumber: item.phone })
   } else if (item.contact) {
@@ -274,9 +197,7 @@ const contactOrg = (item: OrganizationItem) => {
   }
 }
 
-onMounted(() => {
-  fetchOrganizations()
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

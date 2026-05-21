@@ -201,6 +201,22 @@
     {
       "path": "pages/community/PostDetail",
       "style": { "navigationBarTitleText": "帖子详情", "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/community/PostEdit",
+      "style": { "navigationBarTitleText": "发布帖子", "navigationStyle": "custom" }
+    },
+    {
+      "path": "pages/main/Messages",
+      "style": { "navigationBarTitleText": "消息中心" }
+    },
+    {
+      "path": "pages/search/index",
+      "style": { "navigationBarTitleText": "搜索" }
+    },
+    {
+      "path": "pages/donate/DonatePage",
+      "style": { "navigationBarTitleText": "助力平台", "navigationStyle": "custom" }
     }
   ],
   "tabBar": {

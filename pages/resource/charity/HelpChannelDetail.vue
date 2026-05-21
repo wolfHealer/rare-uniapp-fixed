@@ -139,28 +139,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { charityApi } from '@/api/charity'
+import type { ChannelTypeTagMap, HelpChannelDetailData } from '@/types/charity'
+import { downloadAndOpenDocument } from '@/utils/download'
 
-// 类型定义更新
-interface ChannelDetail {
-  id: number
-  channelType: string
-  name: string
-  applyCondition: string
-  responseTime: string
-  contactPhone: string
-  contactUrl: string
-  helpLetterTemplate: string
-  crowdfundingTemplate: string
-  auditStatus: number
-  rejectReason: string
-  sort: number
-  createdAt: string
-  updatedAt: string
-}
-
-// 响应式数据
-const detail = ref<ChannelDetail | null>(null)
+const detail = ref<HelpChannelDetailData | null>(null)
 const loading = ref<boolean>(false)
 const channelId = ref<number | string>('')
 
@@ -171,7 +154,7 @@ const hasTemplates = computed(() => {
 
 // 获取渠道类型标签样式
 const getChannelTypeTag = (type: string) => {
-  const tagMap: Record<string, any> = {
+  const tagMap: ChannelTypeTagMap = {
     emergency_help: 'success',
     crowdfunding: 'primary',
     charity_consulting: 'warning',
@@ -210,7 +193,7 @@ const loadDetail = async () => {
 
   loading.value = true
   try {
-    const res = await request.get(`/api/resource/charity/channels/${channelId.value}`)
+    const res = await charityApi.getChannel(channelId.value)
     detail.value = res.data || null
   } catch (error) {
     console.error('加载渠道详情失败:', error)
@@ -252,55 +235,13 @@ const openUrl = () => {
 }
 
 // 下载资源
-const downloadResource = async (url: string, name: string) => {
+const downloadResource = async (url: string, _name: string) => {
   if (!url) {
     uni.showToast({ title: '资源链接无效', icon: 'none' })
     return
   }
 
-  uni.showLoading({ title: '下载中...' })
-
-  try {
-    let downloadUrl = url
-    
-    if (!downloadUrl.startsWith('http')) {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-      downloadUrl = BASE_URL + downloadUrl
-    }
-
-    uni.downloadFile({
-      url: downloadUrl,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          uni.openDocument({
-            filePath: res.tempFilePath,
-            showMenu: true,
-            success: () => {
-              uni.hideLoading()
-              uni.showToast({ title: `${name}已打开`, icon: 'success' })
-            },
-            fail: () => {
-              uni.hideLoading()
-              uni.showToast({ title: '打开文件失败', icon: 'none' })
-            }
-          })
-        } else {
-          uni.hideLoading()
-          uni.showToast({ title: '下载失败', icon: 'none' })
-        }
-      },
-      fail: (err) => {
-        uni.hideLoading()
-        console.error('下载失败', err)
-        uni.showToast({ title: '下载失败，请检查网络', icon: 'none' })
-      }
-    })
-
-  } catch (error) {
-    uni.hideLoading()
-    console.error('下载异常', error)
-    uni.showToast({ title: '下载异常', icon: 'none' })
-  }
+  downloadAndOpenDocument({ url: String(url) })
 }
 
 // 返回上一页

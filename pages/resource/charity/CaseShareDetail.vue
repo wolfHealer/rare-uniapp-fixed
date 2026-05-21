@@ -130,31 +130,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { charityApi } from '@/api/charity'
+import { downloadAndOpenDocument } from '@/utils/download'
+import type { CaseShareDetailData } from '@/types/charity'
 
-// 类型定义：根据接口返回结构更新
-interface CaseDetail {
-  id: number
-  diseaseId: number
-  diseaseName: string
-  projectId: number
-  projectName: string
-  caseTitle: string
-  patientDesc: string
-  applyCycle: string
-  actualRelief: string
-  experience: string
-  pitfallGuide: string
-  casePdf: string
-  materialTemplate: string
-  auditStatus: number
-  rejectReason: string
-  createdAt: string
-  updatedAt: string
-}
-
-// 响应式数据
-const detail = ref<CaseDetail | null>(null)
+const detail = ref<CaseShareDetailData | null>(null)
 const loading = ref<boolean>(false)
 const caseId = ref<number | string>('')
 
@@ -184,7 +164,7 @@ const loadDetail = async () => {
 
   loading.value = true
   try {
-    const res = await request.get(`/api/resource/charity/cases/${caseId.value}`)
+    const res = await charityApi.getCase(caseId.value)
     // 假设返回结构 { code: 200, data: {...} }
     detail.value = res.data || null
   } catch (error) {
@@ -197,55 +177,12 @@ const loadDetail = async () => {
 }
 
 // 通用文件下载方法
-const downloadFile = async (url: string, fileName: string) => {
+const downloadFile = (url: string, _fileName?: string) => {
   if (!url) {
     uni.showToast({ title: '链接无效', icon: 'none' })
     return
   }
-  
-  uni.showLoading({ title: '下载中...' })
-
-  try {
-    let downloadUrl = url
-    // 如果是相对路径，拼接域名
-    if (!url.startsWith('http')) {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-      downloadUrl = BASE_URL + url
-    }
-
-    uni.downloadFile({
-      url: downloadUrl,
-      success: (res) => {
-        if (res.statusCode === 200) {
-          uni.openDocument({
-            filePath: res.tempFilePath,
-            showMenu: true,
-            success: () => {
-              uni.hideLoading()
-            },
-            fail: (err) => {
-              uni.hideLoading()
-              console.error('打开文档失败', err)
-              uni.showToast({ title: '打开文档失败', icon: 'none' })
-            }
-          })
-        } else {
-          uni.hideLoading()
-          uni.showToast({ title: '下载失败', icon: 'none' })
-        }
-      },
-      fail: (err) => {
-        uni.hideLoading()
-        console.error('下载文件失败', err)
-        uni.showToast({ title: '下载失败，请检查网络', icon: 'none' })
-      }
-    })
-
-  } catch (error) {
-    uni.hideLoading()
-    console.error('下载异常:', error)
-    uni.showToast({ title: '下载异常', icon: 'none' })
-  }
+  downloadAndOpenDocument({ url: String(url) })
 }
 
 // 返回上一页

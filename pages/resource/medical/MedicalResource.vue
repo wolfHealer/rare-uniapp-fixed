@@ -45,6 +45,7 @@ import HospitalList from './HospitalList.vue'
 import DoctorList from './DoctorList.vue'
 import ExaminationsList from './ExaminationsList.vue'
 import BottomNav from '@/components/BottomNav.vue'
+import type { TabChangeEvent } from '@/types/ui'
 
 const activeTab = ref(0)
 
@@ -55,8 +56,7 @@ const tabList = ref([
   { name: '检查项目' }
 ])
 
-// Tab 切换事件
-const onTabChange = (item: any) => {
+const onTabChange = (item: TabChangeEvent) => {
   activeTab.value = item.index
 }
 

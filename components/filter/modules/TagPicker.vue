@@ -19,7 +19,7 @@
 import type { FilterOption } from '@/types/filter'
 
 defineProps<{
-  modelValue: any
+  modelValue: string | number | boolean | null
   options: FilterOption[]
 }>()
 defineEmits(['update:modelValue'])

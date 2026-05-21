@@ -9,8 +9,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./', import.meta.url)),
       'utils': fileURLToPath(new URL('./utils', import.meta.url)),
       'components': fileURLToPath(new URL('./components', import.meta.url)),
-      'stores': fileURLToPath(new URL('./store', import.meta.url)),
+      'stores': fileURLToPath(new URL('./stores', import.meta.url)),
       'api': fileURLToPath(new URL('./api', import.meta.url)),
+      'composables': fileURLToPath(new URL('./composables', import.meta.url)),
       'vue': fileURLToPath(new URL('./node_modules/vue', import.meta.url))
     }
   },

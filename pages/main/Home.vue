@@ -7,7 +7,7 @@
         <text class="search-placeholder">搜疾病、症状、医院、医生</text>
       </view>
       <view class="msg-icon" @click="goMessages">
-        <u-badge :value="unreadCount" :absolute="true" offset="[-5, -5]">
+        <u-badge :value="unreadCount" :absolute="true" :offset="[-5, -5]">
           <u-icon name="bell" size="20" color="#374151"></u-icon>
         </u-badge>
       </view>
@@ -154,32 +154,36 @@ const postList = ref([
 
 // --- 方法定义 ---
 
+const TAB_BAR_PAGES = [
+  '/pages/main/Home',
+  '/pages/resource/Resources',
+  '/pages/community/Community',
+  '/pages/user/profile/Profile'
+]
+
 const goSearch = () => {
-  uni.navigateTo({ url: '/pages/search/Search' })
+  uni.navigateTo({ url: '/pages/search/index' })
 }
 
 const goMessages = () => {
   uni.navigateTo({ url: '/pages/main/Messages' })
 }
 
-const handleNavClick = (item: any) => {
-  if (item.path) {
-    // 判断是否是 TabBar 页面
-    const tabBarPages = ['/pages/medical/Medical', '/pages/community/Community', '/pages/main/Home']
-    if (tabBarPages.includes(item.path)) {
-      uni.switchTab({ url: item.path })
-    } else {
-      uni.navigateTo({ url: item.path })
-    }
+const handleNavClick = (item: { path?: string }) => {
+  if (!item.path) return
+  if (TAB_BAR_PAGES.includes(item.path)) {
+    uni.switchTab({ url: item.path })
+  } else {
+    uni.navigateTo({ url: item.path })
   }
 }
 
 const goMedical = () => {
-  uni.switchTab({ url: '/pages/medical/Medical' })
+  uni.switchTab({ url: '/pages/resource/Resources' })
 }
 
 const goDoctorDetail = (id: number) => {
-  uni.navigateTo({ url: `/pages/medical/DoctorDetail?id=${id}` })
+  uni.navigateTo({ url: `/pages/resource/medical/DoctorDetail?id=${id}` })
 }
 
 const goCharity = () => {

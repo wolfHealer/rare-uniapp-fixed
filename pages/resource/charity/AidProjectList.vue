@@ -23,7 +23,7 @@
     <scroll-view 
       scroll-y 
       class="scroll-content" 
-      @scrolltolower="onLoadMore"
+      @scrolltolower="onLoadMoreHandler"
     >
       <!-- 加载状态 -->
       <view v-if="loading && list.length === 0" class="loading-state">
@@ -75,7 +75,7 @@
 
         <u-loadmore 
           :status="loadStatus" 
-          @loadmore="onLoadMore"
+          @loadmore="onLoadMoreHandler"
         />
         
         <u-empty v-if="!loading && list.length === 0" mode="data" text="暂无救助项目"></u-empty>
@@ -88,43 +88,23 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { charityApi } from '@/api/charity'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
 import type { FilterConfigItem } from '@/types/filter'
+import type { AidProjectItem, AidProjectFilterParams } from '@/types/charity'
+import type { CharityListQuery } from '@/types/charity'
+import type { SelectOption } from '@/types/ui'
 
-// --- 1. 状态管理 ---
 const keyword = ref('')
-const currentPage = ref(1)
-const pageSize = ref(10)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-// 修改点: 定义更准确的类型结构，避免 any
-interface ProjectItem {
-  id: number
-  name: string
-  organizer: string
-  applyCondition: string
-  status: string
-  reliefType: string
-  diseaseIds: number[]
-  reliefStandard: string
-  applyDifficulty: string
-  auditStatus: number
-  rejectReason: string
-  sort: number
-  updatedAt: string
-}
-
-const list = ref<ProjectItem[]>([])
-const loading = ref(false)
-
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<AidProjectFilterParams>({
   type: '',       
   disease: {},    
   difficulty: ''  
 })
 
 // 筛选项数据
-const typeOptions = ref<{ label: string; value: any }[]>([
+const typeOptions = ref<SelectOption<string>[]>([
   { label: '全部类型', value: '' },
   { label: '医疗费用', value: 'medical_cost' },
   { label: '生活补助', value: 'living_support' },
@@ -133,7 +113,7 @@ const typeOptions = ref<{ label: string; value: any }[]>([
   { label: '其他', value: 'other' }
 ])
 
-const difficultyOptions = ref<{ label: string; value: any }[]>([
+const difficultyOptions = ref<SelectOption<string>[]>([
   { label: '全部难度', value: '' },
   { label: '简单', value: 'easy' },
   { label: '中等', value: 'medium' },
@@ -173,105 +153,57 @@ const projectConfigs: FilterConfigItem[] = [
   }
 ]
 
-const fetchProjects = async (isRefresh = false) => {
-  if (isRefresh) {
-    currentPage.value = 1
-    list.value = []
-    loadStatus.value = 'loading'
-  }
-  
-  if (loadStatus.value === 'nomore' && !isRefresh) return
-  
-  loading.value = true
-  try {
-    const params: any = { 
-      page: currentPage.value, 
-      pageSize: pageSize.value 
-    }
+const buildQueryParams = (page: number, pageSize: number): CharityListQuery => {
+  const params: CharityListQuery = { page, pageSize }
+  if (keyword.value.trim()) params.keyword = keyword.value.trim()
+  if (filterParams.value.type) params.reliefType = filterParams.value.type
+  const diseaseVal = filterParams.value.disease || {}
+  if (diseaseVal.diseaseId) params.diseaseId = diseaseVal.diseaseId
+  if (filterParams.value.difficulty) params.applyDifficulty = filterParams.value.difficulty
+  return params
+}
 
-    if (keyword.value && keyword.value.trim() !== '') {
-      params.keyword = keyword.value.trim()
-    }
-
-    if (filterParams.value.type) {
-      params.reliefType = filterParams.value.type // 注意：后端参数名可能是 reliefType 而不是 type，需根据后端实际调整，这里假设后端接收 type 或 reliefType
-    }
-
-    const diseaseVal = filterParams.value.disease || {}
-    if (diseaseVal.diseaseId) {
-      params.diseaseId = diseaseVal.diseaseId
-    }
-
-    if (filterParams.value.difficulty) {
-      params.applyDifficulty = filterParams.value.difficulty // 注意：后端参数名可能是 applyDifficulty
-    }
-    
-    const res = await request.get('/api/resource/charity/projects', params)
-    // 接口返回结构: res.data.list
+const { list, loading, loadStatus, refresh, onLoadMore } = usePagedList<AidProjectItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await charityApi.listProjects(buildQueryParams(page, pageSize))
     const records = res.data?.list || []
-    list.value.push(...records)
-    
-    if (records.length < pageSize.value) {
-      loadStatus.value = 'nomore'
-    } else {
-      loadStatus.value = 'loadmore'
-      currentPage.value++
-    }
-  } catch (error) {
-    loadStatus.value = 'loadmore'
-    uni.showToast({ title: '加载失败', icon: 'none' })
-  } finally {
-    loading.value = false
+    return { list: records, hasMore: records.length >= pageSize }
   }
-}
+})
 
-// --- 4. 事件处理 ---
-const onLoadMore = () => fetchProjects()
-
-const handleSearch = () => {
-  fetchProjects(true)
-}
-
+const onLoadMoreHandler = () => onLoadMore()
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  fetchProjects(true)
+  refresh()
 }
-
-const handleFilterChange = () => {
-  fetchProjects(true)
-}
-
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    type: '',
-    disease: {},
-    difficulty: ''
-  }
-  fetchProjects(true)
+  filterParams.value = { type: '', disease: {}, difficulty: '' }
+  refresh()
 }
 
-const apply = async (item: ProjectItem) => {
+const apply = async (item: AidProjectItem) => {
   try {
-    await request.post('/api/resource/charity/apply', { projectId: item.id })
+    await charityApi.applyProject({ projectId: item.id })
     uni.showToast({ title: '申请提交成功', icon: 'success' })
   } catch (e) {
     uni.showToast({ title: '申请失败', icon: 'none' })
   }
 }
 
-const detail = (item: ProjectItem) => {
+const detail = (item: AidProjectItem) => {
   if (!item?.id) return
   uni.navigateTo({ url: `/pages/resource/charity/AidProjectDetail?id=${item.id}` })
 }
 
-const downloadDocs = (item: ProjectItem) => {
+const downloadDocs = (item: AidProjectItem) => {
   // 由于接口暂无资料字段，这里直接跳转详情，让用户在详情页查看是否有资料
   detail(item)
 }
 
-onMounted(() => {
-  fetchProjects()
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

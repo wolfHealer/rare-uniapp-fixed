@@ -123,37 +123,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { rehabApi } from '@/api/rehab'
+import type { PsychologicalOrgDetailData } from '@/types/rehab'
 
-// 类型定义
-interface Counselor {
-  name: string
-  title: string
-  specialty: string
-}
-
-interface OrganizationDetail {
-  id: number
-  name: string
-  typeName: string
-  isFree: boolean
-  status: string
-  rating?: number
-  description?: string
-  services?: string[]
-  counselors?: Counselor[]
-  phone?: string
-  serviceTime?: string
-  address?: string
-  website?: string
-  latitude?: number
-  longitude?: number
-  // 兼容其他可能字段
-  [key: string]: any
-}
-
-// 响应式数据
-const detail = ref<OrganizationDetail | null>(null)
+const detail = ref<PsychologicalOrgDetailData | null>(null)
 const loading = ref<boolean>(false)
 const organizationId = ref<number | null>(null)
 
@@ -162,7 +135,7 @@ const loadDetail = async (id: number) => {
   loading.value = true
   try {
     // 假设接口路径为 /api/resource/rehab/psychological/orgs/{id}
-    const res = await request.get(`/api/resource/rehab/psychological/orgs/${id}`)
+    const res = await rehabApi.getPsychologicalOrg(id)
     // 适配返回结构: { code: 200, data: {...} }
     detail.value = res.data || null
   } catch (error) {

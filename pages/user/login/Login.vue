@@ -68,8 +68,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import request from '@/utils/request'
+import { userApi } from '@/api/user'
 import { useUserStore } from '@/stores/modules/user'
+import type { LoginResponseData } from '@/types/user'
 
 const loginForm = ref({
   phone: '',
@@ -101,18 +102,12 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
-    const response = await request.post<{
-      token: string
-      user_id: number
-      nickname: string
-      phone: string
-      avatar: string
-    }>('/api/auth/login', {
+    const response = await userApi.login({
       phone: loginForm.value.phone,
       password: loginForm.value.password
     })
 
-    const data = response.data
+    const data = response.data as LoginResponseData
     userStore.setToken(data.token)
     userStore.setUserInfo({
       user_id: data.user_id,

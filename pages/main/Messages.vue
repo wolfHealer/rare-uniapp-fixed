@@ -54,6 +54,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { MessageItem } from '@/types/messages'
 
 // 消息类型选项
 const messageTypes = ref([
@@ -66,12 +67,11 @@ const messageTypes = ref([
 // 当前筛选类型
 const messageType = ref('all')
 
-// 消息数据
-const messages = ref([
+const messages = ref<MessageItem[]>([
   {
     id: 1,
     title: '您的评论收到了新回复',
-    sender: '用户A',
+    content: '用户A 回复了您的评论',
     time: '2小时前',
     type: 'comment',
     isRead: false,
@@ -80,7 +80,7 @@ const messages = ref([
   {
     id: 2,
     title: '专家已回复您的问题',
-    sender: '张医生',
+    content: '张医生 回复了您的提问',
     time: '1天前',
     type: 'qa',
     isRead: true,
@@ -89,7 +89,7 @@ const messages = ref([
   {
     id: 3,
     title: '您关注的资源已更新',
-    sender: '系统通知',
+    content: '系统通知：资源库有更新',
     time: '3天前',
     type: 'resource',
     isRead: false,
@@ -137,7 +137,7 @@ const changeMessageType = (value: string) => {
 }
 
 // 阅读消息并跳转
-const readMessage = (message: any) => {
+const readMessage = (message: MessageItem) => {
   message.isRead = true
   // 注意：实际项目中可能需要根据 link 判断是 navigateTo 还是 switchTab
   uni.navigateTo({ url: message.link })

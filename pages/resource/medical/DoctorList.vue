@@ -90,51 +90,16 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
+import { medicalApi } from '@/api/medical'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
+import { downloadAndSaveFile } from '@/utils/download'
 import type { FilterConfigItem } from '@/types/filter'
+import type { DoctorListItem, DoctorFilterParams, DoctorListQuery } from '@/types/medical'
 
-// --- 1. 类型定义 ---
-// 【修改】更新接口定义以匹配后端返回
-interface DirectoryItem {
-  id: number
-  // type: 'doctor' | 'hospital' // 后端未返回此字段，暂不需要，或在赋值时手动添加
-  name: string
-  hospital?: string
-  department?: string
-  title?: string
-  goodAt: string       // 原 specialty，对应后端的 goodAt
-  region?: string
-  level?: string
-  address?: string     // 后端未返回 address，但保留了以防万一
-  contact?: string     // 原 phone，对应后端的 contact
-  rating?: number
-  reviewCount?: number
-  isRareNetwork?: boolean // 原 isNetworkMember，对应后端的 isRareNetwork
-  
-  // 其他后端返回但未使用的字段
-  auditStatus?: number
-  cityCode?: string
-  cityName?: string
-  clinicTime?: string
-  diseaseIds?: number[]
-  districtCode?: string
-  districtName?: string
-  hospitalId?: number
-  provinceCode?: string
-  provinceName?: string
-}
-
-// --- 2. 状态管理 ---
 const keyword = ref('')
-const list = ref<DirectoryItem[]>([])
-const loading = ref(false)
 const total = ref(0)
-const page = ref(1)
-const pageSize = ref(20)
-
-// 【修改点】筛选参数状态：disease 改为对象类型，以适配 DiseasePicker
-const filterParams = ref<Record<string, any>>({
+const filterParams = ref<DoctorFilterParams>({
   disease: {},     // 疾病对象 { diseaseId, diseaseName }
   hospital: {},    // 医院对象 { hospitalId, hospitalName }
   title: ''        // 医生职称/等级
@@ -167,97 +132,39 @@ const doctorConfigs: FilterConfigItem[] = [
   }
 ]
 
-// --- 4. 数据加载逻辑 ---
-
-const loadList = async (isRefresh = false) => {
-  if (isRefresh) {
-    page.value = 1
-    list.value = []
-    loading.value = true
-  }
-  
-  try {
-    const queryParams: any = {
-      keyword: keyword.value,
-      page: page.value,
-      pageSize: pageSize.value
-    }
-
-    // 1. 疾病筛选 (从对象中取值)
-    const diseaseVal = filterParams.value.disease || {}
-    if (diseaseVal.diseaseId) {
-      queryParams.diseaseId = diseaseVal.diseaseId
-    }
-
-    // 2. 医院筛选
-    const hospital = filterParams.value.hospital || {}
-    if (hospital.hospitalId) {
-      queryParams.hospitalId = hospital.hospitalId
-    }
-
-    // 3. 职称/等级筛选
-    if (filterParams.value.title) {
-      queryParams.title = filterParams.value.title
-    }
-
-    const res = await request.get('/api/resource/medical/doctors', queryParams)
-    
-    const apiData = res.data || {}
-    // 后端结构: { list: [], total: 5 }
-    const newList = apiData.list || []
-    const newTotal = apiData.total || 0
-
-    // 【可选】如果后续逻辑强依赖 type 字段，可以在这里补全
-    // const processedList = newList.map((item: any) => ({ ...item, type: 'doctor' }))
-
-    if (isRefresh) {
-      list.value = newList
-    } else {
-      list.value = [...list.value, ...newList]
-    }
-    total.value = newTotal
-    
-    if (newList.length < pageSize.value) {
-      // 没有更多了
-    } else {
-      page.value++
-    }
-  } catch (error) {
-    console.error('加载名录数据失败:', error)
-    uni.showToast({ title: '网络错误', icon: 'none' })
-  } finally {
-    loading.value = false
-  }
+const buildQueryParams = (page: number, pageSize: number): DoctorListQuery => {
+  const queryParams: DoctorListQuery = { keyword: keyword.value, page, pageSize }
+  const diseaseVal = filterParams.value.disease || {}
+  if (diseaseVal.diseaseId) queryParams.diseaseId = diseaseVal.diseaseId
+  const hospital = filterParams.value.hospital || {}
+  if (hospital.hospitalId) queryParams.hospitalId = hospital.hospitalId
+  if (filterParams.value.title) queryParams.title = filterParams.value.title
+  return queryParams
 }
 
-// --- 5. 事件处理 ---
+const { list, loading, loadStatus, refresh, onLoadMore } = usePagedList<DoctorListItem>({
+  pageSize: 20,
+  fetchPage: async (page, pageSize) => {
+    const res = await medicalApi.listDoctors(buildQueryParams(page, pageSize))
+    const records = res.data?.list || []
+    total.value = res.data?.total || 0
+    return { list: records, hasMore: records.length >= pageSize }
+  }
+})
 
-const loadMore = () => {
-  if (!loading.value) loadList()
-}
-
-const handleSearch = () => loadList(true)
-
+const loadMore = () => onLoadMore()
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  loadList(true)
+  refresh()
 }
-
-const handleFilterChange = () => {
-  loadList(true)
-}
-
-// 【修改点】重置逻辑：disease 重置为空对象
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  filterParams.value = {
-    disease: {},
-    hospital: {},
-    title: ''
-  }
-  loadList(true)
+  filterParams.value = { disease: {}, hospital: {}, title: '' }
+  refresh()
 }
 
-const open = (item: DirectoryItem) => {
+const open = (item: DoctorListItem) => {
   // 跳转到详情页
   const path = `/pages/resource/medical/DoctorDetail?id=${item.id}`
     
@@ -271,54 +178,17 @@ const open = (item: DirectoryItem) => {
 }
 
 const handleDownload = () => {
-  const url = '/api/resource/medical/directory/export/doctors'
-  
-  const params = new URLSearchParams()
-  if (keyword.value) params.append('keyword', keyword.value)
-  
-  // 下载参数映射
+  const params: Record<string, unknown> = {}
+  if (keyword.value) params.keyword = keyword.value
   const diseaseVal = filterParams.value.disease || {}
-  if (diseaseVal.diseaseId) params.append('diseaseId', String(diseaseVal.diseaseId))
-  
+  if (diseaseVal.diseaseId) params.diseaseId = diseaseVal.diseaseId
   const hospital = filterParams.value.hospital || {}
-  if (hospital.hospitalId) params.append('hospitalId', String(hospital.hospitalId))
-  
-  if (filterParams.value.title) params.append('title', filterParams.value.title)
-
-  const fullUrl = `${url}?${params.toString()}`
-  
-  uni.showLoading({ title: '下载中...' })
-  uni.downloadFile({
-    url: fullUrl,
-    success: (res) => {
-      if (res.statusCode === 200) {
-        uni.saveFile({
-          tempFilePath: res.tempFilePath,
-          success: (saveRes) => {
-            uni.hideLoading()
-            uni.showToast({ title: '下载成功', icon: 'none' })
-          },
-          fail: () => {
-             uni.hideLoading()
-             uni.showToast({ title: '保存失败', icon: 'none' })
-          }
-        })
-      } else {
-        uni.hideLoading()
-        uni.showToast({ title: '下载失败', icon: 'none' })
-      }
-    },
-    fail: () => {
-      uni.hideLoading()
-      uni.showToast({ title: '网络错误', icon: 'none' })
-    }
-  })
+  if (hospital.hospitalId) params.hospitalId = hospital.hospitalId
+  if (filterParams.value.title) params.title = filterParams.value.title
+  downloadAndSaveFile('/api/resource/medical/directory/export/doctors', params)
 }
 
-onMounted(() => {
-  // 移除 loadDiseaseOptions，因为 DiseasePicker 内部会处理搜索
-  loadList()
-})
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

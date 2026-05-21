@@ -58,10 +58,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { medicalApi } from '@/api/medical'
+import type { ExaminationDetailData } from '@/types/medical'
 
-
-// 在 ExaminationDetail.vue 的 script 中添加
 const EXAM_TYPE_MAP: Record<string, string> = {
   lab: '实验室检查',
   metabolic: '代谢筛查',
@@ -78,23 +77,7 @@ const getExamTypeText = (type: string) => {
   return EXAM_TYPE_MAP[type] || type
 }
 
-// 类型定义：匹配接口返回字段
-interface ExaminationDetail {
-  id: number
-  examName: string
-  examPurpose: string
-  examType?: string
-  price?: number
-  duration?: string
-  sampleNotes?: string
-  institution?: string
-  diseaseIds?: number[]
-  createdAt?: string
-  updatedAt?: string
-}
-
-// 响应式数据
-const detail = ref<ExaminationDetail | null>(null)
+const detail = ref<ExaminationDetailData | null>(null)
 const loading = ref<boolean>(false)
 const examId = ref<number | null>(null)
 
@@ -103,7 +86,7 @@ const loadDetail = async (id: number) => {
   loading.value = true
   try {
     // 假设详情接口返回结构: { code: 200, data: { ...单个对象... }, message: "success" }
-    const res = await request.get(`/api/resource/medical/examinations/${id}`)
+    const res = await medicalApi.getExamination(id)
     detail.value = res.data
   } catch (error) {
     console.error('加载检查项目详情失败:', error)

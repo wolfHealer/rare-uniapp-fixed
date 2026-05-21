@@ -63,10 +63,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import request from '@/utils/request'
-// 引入通用的智能筛选组件
+import { medicalApi } from '@/api/medical'
+import { usePagedList } from '@/composables/usePagedList'
 import SmartFilterBar from '@/components/filter/SmartFilterBar.vue'
-import type { FilterConfigItem } from '@/types/filter' 
+import type { FilterConfigItem } from '@/types/filter'
+import type { HospitalListItem, HospitalFilterParams, HospitalListQuery } from '@/types/medical'
 
 // --- 1. 定义筛选配置 (Core Logic) ---
 const hospitalConfigs: FilterConfigItem[] = [
@@ -112,100 +113,48 @@ const getLevelText = (level: string | number) => {
 const keyword = ref('')
 
 // 筛选参数状态，初始值只包含配置中定义的 key
-const filterParams = ref<Record<string, any>>({
-  region: {}, // RegionPicker 返回的对象 { provinceCode, ... }
-  level: ''   // 医院等级的值
+const filterParams = ref<HospitalFilterParams>({
+  region: {},
+  level: ''
 })
 
-const hospitals = ref<any[]>([])
-const loading = ref(false)
-const loadStatus = ref<'loading' | 'loadmore' | 'nomore'>('loadmore')
-const page = ref(1)
+const buildQueryParams = (page: number, pageSize: number): HospitalListQuery => {
+  const queryParams: HospitalListQuery = { page, pageSize }
+  if (keyword.value) queryParams.keyword = keyword.value
+  const region = filterParams.value.region || {}
+  if (region.provinceCode) queryParams.provinceCode = region.provinceCode
+  if (region.cityCode) queryParams.cityCode = region.cityCode
+  if (region.districtCode) queryParams.districtCode = region.districtCode
+  if (filterParams.value.level) queryParams.level = filterParams.value.level
+  return queryParams
+}
 
-// --- 4. 数据加载逻辑 ---
-const loadList = async (isRefresh = false) => {
-  if (isRefresh) {
-    page.value = 1
-    hospitals.value = []
-    loadStatus.value = 'loading'
-  }
-  if (loadStatus.value === 'nomore' && !isRefresh) return
-
-  loading.value = true
-  try {
-    const queryParams: any = {
-      page: page.value,
-      pageSize: 10
-    }
-
-    // 基础搜索
-    if (keyword.value) queryParams.keyword = keyword.value
-
-    // --- 5. 自动映射筛选参数 ---
-    
-    // 处理地区 (region)
-    const region = filterParams.value.region || {}
-    if (region.provinceCode) queryParams.provinceCode = region.provinceCode
-    if (region.cityCode) queryParams.cityCode = region.cityCode
-    if (region.districtCode) queryParams.districtCode = region.districtCode
-
-    // 处理医院等级 (level)
-    if (filterParams.value.level) queryParams.level = filterParams.value.level
-
-    const res = await request.get('/api/resource/medical/hospitals', queryParams)
-    const apiData = res.data || {}
-    const rawList = apiData.list || []
-
-    // 【关键修改】数据预处理：映射等级名称，确保前端展示正确
-    const processedList = rawList.map((item: any) => ({
+const { list: hospitals, loading, loadStatus, refresh, onLoadMore } = usePagedList<HospitalListItem>({
+  pageSize: 10,
+  fetchPage: async (page, pageSize) => {
+    const res = await medicalApi.listHospitals(buildQueryParams(page, pageSize))
+    const rawList = res.data?.list || []
+    const processedList = rawList.map((item) => ({
       ...item,
-      // 添加 levelName 字段，值为中文等级描述
       levelName: levelMap[String(item.level)] || '未知等级'
     }))
-
-    hospitals.value.push(...processedList)
-
-    if (processedList.length < 10) {
-      loadStatus.value = 'nomore'
-    } else {
-      loadStatus.value = 'loadmore'
-      page.value++
-    }
-  } catch (e) {
-    console.error('加载医院列表失败', e)
-    loadStatus.value = 'loadmore'
-    uni.showToast({ title: '加载失败', icon: 'none' })
-  } finally {
-    loading.value = false
+    return { list: processedList, hasMore: processedList.length >= pageSize }
   }
-}
+})
 
-// --- 6. 事件处理 ---
-const loadMore = () => loadList()
-
-const handleSearch = () => loadList(true)
-
+const loadMore = () => onLoadMore()
+const handleSearch = () => refresh()
 const handleClear = () => {
   keyword.value = ''
-  loadList(true)
+  refresh()
 }
-
-// 当 SmartFilterBar 触发 change 事件（用户点击了确定）
-const handleFilterChange = () => {
-  loadList(true)
-}
-
-// 当 SmartFilterBar 触发 reset 事件
+const handleFilterChange = () => refresh()
 const handleFilterReset = () => {
-  // 重置筛选参数为初始空状态
-  filterParams.value = {
-    region: {},
-    level: ''
-  }
-  loadList(true)
+  filterParams.value = { region: {}, level: '' }
+  refresh()
 }
 
-const open = (item: any) => {
+const open = (item: HospitalListItem) => {
   uni.navigateTo({ url: `/pages/resource/medical/HospitalDetail?id=${item.id}` })
 }
 
@@ -213,7 +162,7 @@ const handleDownload = () => {
   uni.showToast({ title: '下载功能开发中', icon: 'none' })
 }
 
-onMounted(() => loadList())
+onMounted(() => refresh())
 </script>
 
 <style scoped lang="scss">

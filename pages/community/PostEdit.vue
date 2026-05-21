@@ -119,8 +119,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import request from '@/utils/request'
+import { communityApi } from '@/api/community'
+import { knowledgeApi } from '@/api/knowledge'
 import { useUserStore } from '@/stores/modules/user'
+import type { DiseaseTreeCategory, DiseaseTreeChild } from '@/types/knowledge'
+import type { PickerConfirmEvent, PickerTextOption } from '@/types/ui'
 
 const userStore = useUserStore()
 
@@ -147,7 +150,7 @@ const typeOptions = [
   { text: '情绪', value: 'emotion' }
 ]
 
-const diseaseOptions = ref<{ text: string; value: number }[]>([])
+const diseaseOptions = ref<PickerTextOption[]>([])
 
 // 计算显示文本
 const typeLabel = computed(() => {
@@ -165,33 +168,33 @@ onMounted(async () => {
   try {
     // 这里假设有一个简单的疾病列表接口，或者复用之前的 disease-tree 逻辑展平
     // 为了演示，我们暂时用一个空数组或模拟数据，实际项目中请调用真实接口
-    const res = await request.get('/api/knowledge/disease-tree')
+    const res = await knowledgeApi.getDiseaseTree()
     const categories = res.data || []
     // 展平所有疾病用于选择
-    const allDiseases: any[] = []
-    categories.forEach((cat: any) => {
+    const allDiseases: PickerTextOption[] = []
+    ;(categories as DiseaseTreeCategory[]).forEach((cat) => {
       if (cat.children) {
-        cat.children.forEach((d: any) => {
+        cat.children.forEach((d: DiseaseTreeChild) => {
           allDiseases.push({ text: d.name, value: d.id })
         })
       }
     })
-    diseaseOptions.value = [{ text: '不关联特定疾病', value: null as any }, ...allDiseases]
+    diseaseOptions.value = [{ text: '不关联特定疾病', value: null }, ...allDiseases]
   } catch (e) {
     console.error('获取疾病列表失败', e)
   }
 })
 
 // 选择类型
-const onTypeConfirm = (e: any) => {
-  const selectedIndex = e.indexes[0]
+const onTypeConfirm = (e: PickerConfirmEvent) => {
+  const selectedIndex = (e.indexes ?? e.indexs ?? [0])[0]
   form.value.type = typeOptions[selectedIndex].value
   showTypePicker.value = false
 }
 
 // 选择疾病
-const onDiseaseConfirm = (e: any) => {
-  const selectedIndex = e.indexes[0]
+const onDiseaseConfirm = (e: PickerConfirmEvent) => {
+  const selectedIndex = (e.indexes ?? e.indexs ?? [0])[0]
   const selected = diseaseOptions.value[selectedIndex]
   form.value.disease_id = selected.value
   showDiseasePicker.value = false
@@ -219,7 +222,7 @@ const uploadImages = async (tempPaths: string[]) => {
     for (const path of tempPaths) {
       // 假设有一个通用的上传接口 /api/common/upload
       // 注意：uni.uploadFile 是原生 API，需要配合后端接口
-      const uploadRes = await new Promise<any>((resolve, reject) => {
+      const uploadRes = await new Promise<string>((resolve, reject) => {
         uni.uploadFile({
           url: '/api/common/upload', // 请替换为真实的上传接口地址
           filePath: path,
@@ -280,7 +283,7 @@ const submitPost = async () => {
       category_id: form.value.category_id
     }
 
-    await request.post('/api/community/posts', payload)
+    await communityApi.createPost(payload)
     
     uni.showToast({ title: '发布成功', icon: 'success' })
     

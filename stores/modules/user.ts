@@ -1,13 +1,9 @@
 
 import { defineStore } from 'pinia'
-import { ref } from 'vue'  // ✅ 使用具名导入
+import { ref } from 'vue'
+import type { UserInfo } from '@/types/user'
 
-export interface UserInfo {
-  user_id: number
-  nickname: string
-  phone: string
-  avatar: string
-}
+export type { UserInfo }
 
 export const useUserStore = defineStore('user', () => {
   const token = ref<string>('')

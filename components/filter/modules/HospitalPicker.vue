@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import request from '@/utils/request'
+import { medicalApi } from '@/api/medical'
 
 export interface HospitalOption {
   id: number | string
@@ -71,7 +71,7 @@ const emit = defineEmits<{
 const keyword = ref(props.modelValue?.hospitalName || '')
 const options = ref<HospitalOption[]>([])
 const loading = ref(false)
-const timer = ref<any>(null)
+const timer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const showResult = computed(() => keyword.value.trim().length > 0)
 
@@ -99,7 +99,7 @@ const fetchHospitalList = async () => {
 
   loading.value = true
   try {
-    const res = await request.get('/api/resource/medical/hospitals', {
+    const res = await medicalApi.listHospitals({
       keyword: q,
       page: 1,
       pageSize: 20

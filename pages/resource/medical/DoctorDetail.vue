@@ -104,46 +104,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { medicalApi } from '@/api/medical'
+import type { DoctorDetailData } from '@/types/medical'
 
-// 类型定义
-interface Disease {
-  id: number
-  name: string
-  alias?: string // 别名
-}
-
-interface Review {
-  id: number
-  content: string
-  date: string
-  rating: number
-}
-
-interface DoctorDetail {
-  id: number
-  name: string
-  hospitalName: string
-  department: string
-  title: string
-  goodAt: string
-  clinicTime?: string
-  contact?: string
-  score?: number
-  commentNum?: number
-  reviews?: Review[]
-  isRareNetwork?: boolean
-  address?: string
-  diseases?: Disease[] // 【新增】疾病列表
-  diseaseIds?: number[]
-  level?: string
-  provinceName?: string
-  cityName?: string
-  districtName?: string
-}
-
-// 响应式数据
-const detail = ref<DoctorDetail | null>(null)
+const detail = ref<DoctorDetailData | null>(null)
 const loading = ref<boolean>(false)
 const showPhone = ref<boolean>(false)
 const doctorId = ref<number | null>(null)
@@ -152,7 +116,7 @@ const doctorId = ref<number | null>(null)
 const loadDetail = async (id: number) => {
   loading.value = true
   try {
-    const res = await request.get(`/api/resource/medical/doctors/${id}`)
+    const res = await medicalApi.getDoctor(id)
     detail.value = res.data
   } catch (error) {
     console.error('加载医生详情失败:', error)

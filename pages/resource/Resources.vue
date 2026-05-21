@@ -38,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import type { RecommendItem } from '@/types/ui'
 
 // 入口配置
 // 修改说明：
@@ -61,7 +62,7 @@ const go = (path: string) => {
   uni.navigateTo({ url: path })
 }
 
-const open = (item: any) => {
+const open = (item: RecommendItem) => {
   uni.showToast({ title: `打开: ${item.title}`, icon: 'none' })
 }
 

@@ -1,3 +1,5 @@
+import { useUserStore } from '@/stores/modules/user'
+
 export interface ApiResponse<T = any> {
   code: number
   message: string
@@ -18,6 +20,19 @@ const buildQuery = (params?: Record<string, any>) => {
     .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
     .join('&')
   return query ? `?${query}` : ''
+}
+
+const handleUnauthorized = () => {
+  try {
+    useUserStore().logout()
+  } catch {
+    uni.removeStorageSync('token')
+    uni.removeStorageSync('userInfo')
+  }
+  uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
+  setTimeout(() => {
+    uni.reLaunch({ url: '/pages/user/login/Login' })
+  }, 1200)
 }
 
 const request = <T = any>(options: RequestOptions): Promise<ApiResponse<T>> => {
@@ -49,13 +64,8 @@ const request = <T = any>(options: RequestOptions): Promise<ApiResponse<T>> => {
           return
         }
 
-        if (body.code === 401) {
-          uni.removeStorageSync('token')
-          uni.removeStorageSync('userInfo')
-          uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
-          setTimeout(() => {
-            uni.reLaunch({ url: '/pages/user/login/Login' })
-          }, 1200)
+        if (res.statusCode === 401 || body.code === 401) {
+          handleUnauthorized()
           reject(body)
           return
         }
@@ -91,6 +101,59 @@ export default {
   delete<T = any>(url: string, data?: any, options?: Omit<RequestOptions, 'url' | 'method' | 'data'>) {
     return request<T>({ url, method: 'DELETE', data, ...options })
   },
+  upload<T = unknown>(
+    url: string,
+    filePath: string,
+    options?: { name?: string; formData?: Record<string, string>; showLoading?: boolean }
+  ) {
+    const token = uni.getStorageSync('token')
+    const { name = 'file', formData, showLoading } = options || {}
+
+    if (showLoading) {
+      uni.showLoading({ title: '上传中...', mask: true })
+    }
+
+    return new Promise<ApiResponse<T>>((resolve, reject) => {
+      uni.uploadFile({
+        url: `${BASE_URL}${url}`,
+        filePath,
+        name,
+        formData,
+        header: {
+          Authorization: token ? `Bearer ${token}` : ''
+        },
+        success: (res) => {
+          if (showLoading) {
+            uni.hideLoading()
+          }
+          try {
+            const body = (typeof res.data === 'string' ? JSON.parse(res.data) : res.data) as ApiResponse<T>
+            if (res.statusCode === 200 && body.code === 200) {
+              resolve(body)
+              return
+            }
+            if (res.statusCode === 401 || body.code === 401) {
+              handleUnauthorized()
+              reject(body)
+              return
+            }
+            uni.showToast({ title: body.message || '上传失败', icon: 'none' })
+            reject(body)
+          } catch (e) {
+            uni.showToast({ title: '上传响应解析失败', icon: 'none' })
+            reject(e)
+          }
+        },
+        fail: (error) => {
+          if (showLoading) {
+            uni.hideLoading()
+          }
+          uni.showToast({ title: '上传失败', icon: 'none' })
+          reject(error)
+        }
+      })
+    })
+  },
   download(url: string, params?: Record<string, any>) {
     const token = uni.getStorageSync('token')
     return new Promise<UniApp.DownloadSuccessData>((resolve, reject) => {
@@ -100,6 +163,11 @@ export default {
           Authorization: token ? `Bearer ${token}` : ''
         },
         success: (res) => {
+          if (res.statusCode === 401) {
+            handleUnauthorized()
+            reject(res)
+            return
+          }
           if (res.statusCode === 200) {
             resolve(res)
             return

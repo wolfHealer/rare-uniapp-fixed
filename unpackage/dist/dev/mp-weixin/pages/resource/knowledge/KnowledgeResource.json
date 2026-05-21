@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "疾病科普",
-  "usingComponents": {
-    "u-search": "../../../node-modules/uview-plus/components/u-search/u-search",
-    "bottom-nav": "../../../components/BottomNav"
-  }
-}

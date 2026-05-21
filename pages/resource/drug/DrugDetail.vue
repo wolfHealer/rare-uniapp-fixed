@@ -122,37 +122,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import request from '@/utils/request'
+import { drugApi } from '@/api/drug'
+import type { DrugDetailData } from '@/types/drug'
+import { downloadAndOpenDocument } from '@/utils/download'
 
-// 类型定义：匹配接口返回的驼峰命名
-interface DiseaseInfo {
-  id: number
-  name: string
-}
-
-interface DrugDetail {
-  id: number
-  genericName: string      // 对应 genericName
-  brandName?: string       // 对应 brandName
-  indication: string
-  drugType: string         // 对应 drugType
-  isInsurance: boolean     // 对应 isInsurance
-  dosageForm?: string      // 对应 dosageForm
-  spec?: string
-  refPrice?: string        // 对应 refPrice
-  hasRelief?: boolean      // 对应 hasRelief
-  isLaunched?: boolean
-  needPrescription?: boolean // 对应 needPrescription
-  manualOriginal?: string
-  manualPopular?: string
-  auditStatus?: number
-  diseases?: DiseaseInfo[] // 新增：关联疾病列表
-  createdAt?: string
-  updatedAt?: string
-}
-
-// 响应式数据
-const detail = ref<DrugDetail | null>(null)
+const detail = ref<DrugDetailData | null>(null)
 const loading = ref<boolean>(false)
 const downloading = ref<boolean>(false)
 const drugId = ref<number | null>(null)
@@ -173,7 +147,7 @@ const getDrugTypeText = (type: string) => {
 const loadDetail = async (id: number) => {
   loading.value = true
   try {
-    const res = await request.get(`/api/resource/drug/drugs/${id}`)
+    const res = await drugApi.getDrug(id)
     // 接口返回结构: { code: 200, data: {...}, message: "success" }
     detail.value = res.data
   } catch (error) {
@@ -188,7 +162,7 @@ const loadDetail = async (id: number) => {
 // 下载/查看说明书
 const handleDownload = async () => {
   if (!detail.value?.id) return
-  
+
   const url = detail.value.manualPopular || detail.value.manualOriginal
   if (!url) {
     uni.showToast({ title: '暂无说明书链接', icon: 'none' })
@@ -196,49 +170,19 @@ const handleDownload = async () => {
   }
 
   downloading.value = true
-  
+
   // #ifdef H5
   window.open(url, '_blank')
   downloading.value = false
   // #endif
 
   // #ifndef H5
-  uni.downloadFile({
-    url: url,
-    success: (downloadRes) => {
-      if (downloadRes.statusCode === 200) {
-        openPdf(downloadRes.tempFilePath)
-      } else {
-        uni.showToast({ title: '下载失败', icon: 'none' })
-        downloading.value = false
-      }
-    },
-    fail: () => {
-      uni.showToast({ title: '下载失败，请检查网络', icon: 'none' })
-      downloading.value = false
-    }
-  })
+  try {
+    await downloadAndOpenDocument({ url: String(url) })
+  } finally {
+    downloading.value = false
+  }
   // #endif
-}
-
-// 打开 PDF
-const openPdf = (filePath: string) => {
-  uni.showLoading({ title: '打开中...' })
-  uni.openDocument({
-    filePath: filePath,
-    fileType: 'pdf',
-    success: () => {
-      uni.hideLoading()
-    },
-    fail: (err) => {
-      uni.hideLoading()
-      console.error(err)
-      uni.showToast({ title: '无法打开文件', icon: 'none' })
-    },
-    complete: () => {
-      downloading.value = false
-    }
-  })
 }
 
 // 返回上一页

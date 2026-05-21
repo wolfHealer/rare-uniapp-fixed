@@ -1,7 +1,0 @@
-{
-  "component": true,
-  "usingComponents": {
-    "u-loadmore": "../../../node-modules/uview-plus/components/u-loadmore/u-loadmore",
-    "post-card": "./PostCard"
-  }
-}

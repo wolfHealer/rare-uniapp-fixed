@@ -47,14 +47,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue"
-import request from '@/utils/request'
+import { knowledgeApi } from '@/api/knowledge'
 import BottomNav from '@/components/BottomNav.vue'
+import type { CategoryDiseaseItem } from '@/types/knowledge'
+import type { UniPageInstance } from '@/types/ui'
 
-// 当前分类名称 (默认值)
 const categoryName = ref('疾病分类')
 
-// 分类下的病种列表
-const diseases = ref<{ id: number; name: string; introduction: string }[]>([])
+const diseases = ref<CategoryDiseaseItem[]>([])
 
 // 当前分类 ID
 const categoryId = ref<number>(0)
@@ -80,7 +80,7 @@ const loadDiseasesByCategory = async (id: number) => {
   loading.value = true
   try {
     // 调用接口
-    const response = await request.get(`/api/knowledge/category/${id}/diseases`)
+    const response = await knowledgeApi.getCategoryDiseases(id)
     
     console.log('接口返回原始数据:', response) // 调试用
 
@@ -94,7 +94,7 @@ const loadDiseasesByCategory = async (id: number) => {
       // }
       
       if (Array.isArray(list)) {
-        diseases.value = list.map((item: any) => ({
+        diseases.value = list.map((item: CategoryDiseaseItem) => ({
           id: item.id,
           name: item.name,
           // 优先使用 introduction，如果没有则使用空字符串
@@ -128,7 +128,7 @@ const loadDiseasesByCategory = async (id: number) => {
 onMounted(() => {
   // 获取页面参数
   const pages = getCurrentPages()
-  const currentPage = pages[pages.length - 1] as any
+  const currentPage = pages[pages.length - 1] as UniPageInstance
   const options = currentPage.options || {}
   
   // 1. 获取 ID

@@ -46,13 +46,15 @@
 </template>
 
 <script setup lang="ts">
+import type { CommentItem } from '@/types/community'
+
 const emit = defineEmits(['set-reply-target', 'load-more-replies'])
 
 defineProps<{
-  comments: any[]
+  comments: CommentItem[]
 }>()
 
-const setReplyTarget = (comment: any) => {
+const setReplyTarget = (comment: CommentItem) => {
   emit('set-reply-target', {
     parentId: comment.id,
     targetUser: comment.user_name || comment.display_name
